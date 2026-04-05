@@ -21,6 +21,7 @@
 **/bin/
 **/dist/
 **/coverage.out
+.tools/
 
 # IDE
 .idea/
