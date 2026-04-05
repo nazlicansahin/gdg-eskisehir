@@ -1,0 +1,163 @@
+scalar Time
+scalar JSON
+
+enum Role {
+  member
+  team_member
+  organizer
+  super_admin
+}
+
+enum EventStatus {
+  draft
+  published
+  cancelled
+}
+
+enum RegistrationStatus {
+  active
+  cancelled
+}
+
+type User {
+  id: ID!
+  email: String!
+  displayName: String!
+  role: Role!
+}
+
+type Event {
+  id: ID!
+  title: String!
+  description: String
+  status: EventStatus!
+  capacity: Int!
+  startsAt: Time!
+  endsAt: Time!
+}
+
+type Session {
+  id: ID!
+  eventId: ID!
+  title: String!
+  description: String
+  startsAt: Time!
+  endsAt: Time!
+  room: String
+  speakers: [Speaker!]!
+}
+
+type Speaker {
+  id: ID!
+  fullName: String!
+  bio: String
+  avatarUrl: String
+}
+
+type RegistrationTicket {
+  id: ID!
+  eventId: ID!
+  userId: ID!
+  status: RegistrationStatus!
+  qrCodeValue: String!
+  checkedInAt: Time
+}
+
+input EventFilterInput {
+  status: EventStatus
+}
+
+input SpeakerFilterInput {
+  query: String
+}
+
+input UpdateMyProfileInput {
+  displayName: String!
+}
+
+input CreateEventInput {
+  title: String!
+  description: String
+  capacity: Int!
+  startsAt: Time!
+  endsAt: Time!
+}
+
+input UpdateEventInput {
+  id: ID!
+  title: String
+  description: String
+  capacity: Int
+  startsAt: Time
+  endsAt: Time
+}
+
+input CreateSessionInput {
+  eventId: ID!
+  title: String!
+  description: String
+  startsAt: Time!
+  endsAt: Time!
+  room: String
+}
+
+input UpdateSessionInput {
+  id: ID!
+  title: String
+  description: String
+  startsAt: Time
+  endsAt: Time
+  room: String
+}
+
+input CreateSpeakerInput {
+  fullName: String!
+  bio: String
+  avatarUrl: String
+}
+
+input UpdateSpeakerInput {
+  id: ID!
+  fullName: String
+  bio: String
+  avatarUrl: String
+}
+
+type Query {
+  me: User!
+  events(filter: EventFilterInput): [Event!]!
+  event(id: ID!): Event
+  eventSchedule(eventId: ID!): [Session!]!
+  speakers(filter: SpeakerFilterInput): [Speaker!]!
+  speaker(id: ID!): Speaker
+  myRegistrations: [RegistrationTicket!]!
+  myTicket(eventId: ID!): RegistrationTicket
+
+  adminEvents(filter: EventFilterInput): [Event!]!
+  adminEvent(id: ID!): Event
+  adminRegistrations(eventId: ID!): [RegistrationTicket!]!
+  adminUsers: [User!]!
+}
+
+type Mutation {
+  registerForEvent(eventId: ID!): RegistrationTicket!
+  updateMyProfile(input: UpdateMyProfileInput!): User!
+
+  createEvent(input: CreateEventInput!): Event!
+  updateEvent(input: UpdateEventInput!): Event!
+  publishEvent(eventId: ID!): Event!
+  cancelEvent(eventId: ID!, reason: String!): Event!
+
+  createSession(input: CreateSessionInput!): Session!
+  updateSession(input: UpdateSessionInput!): Session!
+
+  createSpeaker(input: CreateSpeakerInput!): Speaker!
+  updateSpeaker(input: UpdateSpeakerInput!): Speaker!
+  attachSpeakerToSession(sessionId: ID!, speakerId: ID!): Session!
+
+  checkInByQR(eventId: ID!, qrCode: String!): RegistrationTicket!
+  manualCheckIn(registrationId: ID!): RegistrationTicket!
+
+  cancelRegistration(registrationId: ID!, reason: String!): RegistrationTicket!
+  assignUserRole(userId: ID!, role: Role!): User!
+}

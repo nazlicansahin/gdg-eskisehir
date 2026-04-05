@@ -1,0 +1,25 @@
+title = "GDG Eskisehir Secret Scanning"
+
+[allowlist]
+description = "Allow local placeholders and templates only"
+paths = [
+  '''\.env\.template$''',
+]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API key patterns"
+regex = '''(?i)(api[_-]?key|secret|token)[^\\n]{0,20}[=:][^\\n]{8,}'''
+tags = ["key", "token", "secret"]
+
+[[rules]]
+id = "firebase-private-key"
+description = "Firebase service account private key"
+regex = '''-----BEGIN PRIVATE KEY-----'''
+tags = ["firebase", "private-key"]
+
+[[rules]]
+id = "google-api-key"
+description = "Google API key pattern"
+regex = '''AIza[0-9A-Za-z\\-_]{35}'''
+tags = ["gcp", "api-key"]
