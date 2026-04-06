@@ -1,0 +1,20 @@
+schema:
+  - schema/graphql/schema.graphqls
+
+exec:
+  filename: gqlgen/generated.go
+
+model:
+  filename: gqlgen/model/models_gen.go
+
+resolver:
+  filename: gqlgen/resolver.go
+  type: Resolver
+  package: gqlgen
+
+models:
+  Time:
+    model: github.com/99designs/gqlgen/graphql.Time
+  JSON:
+    model:
+      - encoding/json.RawMessage

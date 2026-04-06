@@ -11,6 +11,12 @@ import (
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
 
+const (
+	testEvGQL  = "88888888-8888-4888-8888-888888888808"
+	testUsGQL  = "ffffffff-ffff-4fff-8fff-ffffffffffff"
+	testUsMiss = "99999999-9999-4999-8999-999999999909"
+)
+
 func setupResolverForTicketFlow(t *testing.T) *Resolver {
 	t.Helper()
 
@@ -19,7 +25,7 @@ func setupResolverForTicketFlow(t *testing.T) *Resolver {
 	qr := memory.NewQRCodeService()
 
 	repos.SeedEvent(&domain.Event{
-		ID:       "event_gql_1",
+		ID:       testEvGQL,
 		Status:   domain.EventStatusPublished,
 		Capacity: 5,
 		StartsAt: time.Now().UTC().Add(24 * time.Hour),
@@ -33,7 +39,7 @@ func setupResolverForTicketFlow(t *testing.T) *Resolver {
 
 func TestRegisterForEventResolver_Unauthenticated(t *testing.T) {
 	resolver := setupResolverForTicketFlow(t)
-	_, err := resolver.Mutation().RegisterForEvent(context.Background(), "event_gql_1")
+	_, err := resolver.Mutation().RegisterForEvent(context.Background(), testEvGQL)
 	if err == nil {
 		t.Fatalf("expected error for missing actor context")
 	}
@@ -50,11 +56,11 @@ func TestRegisterForEventResolver_Unauthenticated(t *testing.T) {
 func TestRegisterAndMyTicketResolver_Success(t *testing.T) {
 	resolver := setupResolverForTicketFlow(t)
 	ctx := WithActor(context.Background(), Actor{
-		UserID: "user_resolver_1",
+		UserID: testUsGQL,
 		Role:   domain.RoleMember,
 	})
 
-	registerOut, err := resolver.Mutation().RegisterForEvent(ctx, "event_gql_1")
+	registerOut, err := resolver.Mutation().RegisterForEvent(ctx, testEvGQL)
 	if err != nil {
 		t.Fatalf("register resolver failed: %v", err)
 	}
@@ -62,7 +68,7 @@ func TestRegisterAndMyTicketResolver_Success(t *testing.T) {
 		t.Fatalf("expected registration ticket output")
 	}
 
-	myTicketOut, err := resolver.Query().MyTicket(ctx, "event_gql_1")
+	myTicketOut, err := resolver.Query().MyTicket(ctx, testEvGQL)
 	if err != nil {
 		t.Fatalf("myTicket resolver failed: %v", err)
 	}
@@ -74,11 +80,11 @@ func TestRegisterAndMyTicketResolver_Success(t *testing.T) {
 func TestMyTicketResolver_NotFoundMapsToGraphQLCode(t *testing.T) {
 	resolver := setupResolverForTicketFlow(t)
 	ctx := WithActor(context.Background(), Actor{
-		UserID: "missing_user",
+		UserID: testUsMiss,
 		Role:   domain.RoleMember,
 	})
 
-	_, err := resolver.Query().MyTicket(ctx, "event_gql_1")
+	_, err := resolver.Query().MyTicket(ctx, testEvGQL)
 	if err == nil {
 		t.Fatalf("expected not found error")
 	}

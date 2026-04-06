@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/gdg-eskisehir/events/backend/internal/application/ports"
+	"github.com/gdg-eskisehir/events/backend/internal/application/validation"
 	"github.com/gdg-eskisehir/events/backend/internal/domain"
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
@@ -47,8 +48,11 @@ func (uc *RegisterForEventUseCase) Execute(
 	ctx context.Context,
 	in RegisterForEventInput,
 ) (*RegisterForEventOutput, error) {
-	if in.ActorUserID == "" || in.EventID == "" {
-		return nil, sharedErrors.ErrValidation
+	if err := validation.RequireUUID(in.ActorUserID); err != nil {
+		return nil, err
+	}
+	if err := validation.RequireUUID(in.EventID); err != nil {
+		return nil, err
 	}
 
 	var output *RegisterForEventOutput

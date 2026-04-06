@@ -45,3 +45,18 @@ func CanManageRoles(role domain.Role) error {
 	}
 	return sharedErrors.ErrForbidden
 }
+
+// CanAccessAdminAPI allows organizer-facing queries (events list, registrations, users).
+func CanAccessAdminAPI(role domain.Role) error {
+	switch role {
+	case domain.RoleOrganizer, domain.RoleSuperAdmin:
+		return nil
+	default:
+		return sharedErrors.ErrForbidden
+	}
+}
+
+// CanCancelEvent allows transitioning an event to cancelled.
+func CanCancelEvent(role domain.Role) error {
+	return CanPublishEvent(role)
+}

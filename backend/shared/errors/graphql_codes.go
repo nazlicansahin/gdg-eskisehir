@@ -11,6 +11,7 @@ const (
 	CodeCapacityReached       = "CAPACITY_REACHED"
 	CodeInvalidQRCode         = "INVALID_QR_CODE"
 	CodeRegistrationCancelled = "REGISTRATION_CANCELLED"
+	CodeAlreadyCheckedIn      = "ALREADY_CHECKED_IN"
 	CodeInternal              = "INTERNAL"
 )
 
@@ -32,6 +33,8 @@ func ToGraphQLCode(err error) string {
 		return CodeInvalidQRCode
 	case stdErrors.Is(err, ErrRegistrationCancelled):
 		return CodeRegistrationCancelled
+	case stdErrors.Is(err, ErrAlreadyCheckedIn):
+		return CodeAlreadyCheckedIn
 	default:
 		return CodeInternal
 	}

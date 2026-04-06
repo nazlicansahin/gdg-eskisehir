@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	apiauth "github.com/gdg-eskisehir/events/backend/internal/auth"
 	"github.com/gdg-eskisehir/events/backend/internal/domain"
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
@@ -14,36 +15,62 @@ type fakeVerifier struct {
 	tokenToUID map[string]string
 }
 
-func (f *fakeVerifier) VerifyIDToken(_ context.Context, rawToken string) (*VerifiedToken, error) {
+func (f *fakeVerifier) VerifyIDToken(_ context.Context, rawToken string) (*apiauth.VerifiedToken, error) {
 	uid, ok := f.tokenToUID[rawToken]
 	if !ok {
 		return nil, sharedErrors.ErrUnauthorized
 	}
-	return &VerifiedToken{FirebaseUID: uid}, nil
+	return &apiauth.VerifiedToken{FirebaseUID: uid}, nil
 }
 
-type fakeLookup struct {
-	uidToUserID map[string]string
-	uidToRole   map[string]domain.Role
+type fakeUsers struct {
+	uidToUser map[string]*domain.User
 }
 
-func (f *fakeLookup) GetUserRoleByFirebaseUID(
+func (f *fakeUsers) EnsureFromFirebase(
 	_ context.Context,
-	firebaseUID string,
-) (string, domain.Role, error) {
-	userID := f.uidToUserID[firebaseUID]
-	role := f.uidToRole[firebaseUID]
-	if userID == "" || !role.IsValid() {
-		return "", "", sharedErrors.ErrUnauthorized
+	firebaseUID, _, _ string,
+) (*domain.User, error) {
+	u := f.uidToUser[firebaseUID]
+	if u == nil || u.ID == "" || !u.Role.IsValid() {
+		return nil, sharedErrors.ErrUnauthorized
 	}
-	return userID, role, nil
+	return u, nil
+}
+
+func (f *fakeUsers) GetByID(_ context.Context, id string) (*domain.User, error) {
+	for _, u := range f.uidToUser {
+		if u != nil && u.ID == id {
+			return u, nil
+		}
+	}
+	return nil, sharedErrors.ErrNotFound
+}
+
+func (f *fakeUsers) UpdateDisplayName(_ context.Context, _, _ string) error {
+	return nil
+}
+
+func (f *fakeUsers) ListAll(_ context.Context) ([]*domain.User, error) {
+	var out []*domain.User
+	for _, u := range f.uidToUser {
+		if u != nil {
+			out = append(out, u)
+		}
+	}
+	return out, nil
+}
+
+func (f *fakeUsers) UpdateRole(_ context.Context, _ string, _ domain.Role) error {
+	return nil
 }
 
 func TestActorMiddleware_InjectsActorOnValidBearer(t *testing.T) {
 	verifier := &fakeVerifier{tokenToUID: map[string]string{"valid-token": "firebase_1"}}
-	lookup := &fakeLookup{
-		uidToUserID: map[string]string{"firebase_1": "user_1"},
-		uidToRole:   map[string]domain.Role{"firebase_1": domain.RoleMember},
+	users := &fakeUsers{
+		uidToUser: map[string]*domain.User{
+			"firebase_1": {ID: "user_1", Role: domain.RoleMember},
+		},
 	}
 
 	var gotActor Actor
@@ -56,7 +83,7 @@ func TestActorMiddleware_InjectsActorOnValidBearer(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := ActorMiddleware(verifier, lookup, next)
+	handler := ActorMiddleware(verifier, users, next)
 	req := httptest.NewRequest(http.MethodGet, "/graphql", nil)
 	req.Header.Set("Authorization", "Bearer valid-token")
 	rec := httptest.NewRecorder()
@@ -72,10 +99,7 @@ func TestActorMiddleware_InjectsActorOnValidBearer(t *testing.T) {
 
 func TestActorMiddleware_NoHeaderKeepsAnonymousContext(t *testing.T) {
 	verifier := &fakeVerifier{tokenToUID: map[string]string{}}
-	lookup := &fakeLookup{
-		uidToUserID: map[string]string{},
-		uidToRole:   map[string]domain.Role{},
-	}
+	users := &fakeUsers{uidToUser: map[string]*domain.User{}}
 
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := ActorFromContext(r.Context())
@@ -85,7 +109,7 @@ func TestActorMiddleware_NoHeaderKeepsAnonymousContext(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := ActorMiddleware(verifier, lookup, next)
+	handler := ActorMiddleware(verifier, users, next)
 	req := httptest.NewRequest(http.MethodGet, "/graphql", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -97,10 +121,7 @@ func TestActorMiddleware_NoHeaderKeepsAnonymousContext(t *testing.T) {
 
 func TestActorMiddleware_InvalidBearerSetsAuthErrorInContext(t *testing.T) {
 	verifier := &fakeVerifier{tokenToUID: map[string]string{}}
-	lookup := &fakeLookup{
-		uidToUserID: map[string]string{},
-		uidToRole:   map[string]domain.Role{},
-	}
+	users := &fakeUsers{uidToUser: map[string]*domain.User{}}
 
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := AuthErrorFromContext(r.Context()); err == nil {
@@ -109,7 +130,7 @@ func TestActorMiddleware_InvalidBearerSetsAuthErrorInContext(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := ActorMiddleware(verifier, lookup, next)
+	handler := ActorMiddleware(verifier, users, next)
 	req := httptest.NewRequest(http.MethodGet, "/graphql", nil)
 	req.Header.Set("Authorization", "NotBearer x")
 	rec := httptest.NewRecorder()

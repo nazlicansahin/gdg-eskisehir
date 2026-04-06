@@ -12,4 +12,5 @@ var (
 	ErrCapacityReached       = errors.New("capacity reached")
 	ErrInvalidQRCode         = errors.New("invalid qr code")
 	ErrRegistrationCancelled = errors.New("registration cancelled")
+	ErrAlreadyCheckedIn      = errors.New("already checked in")
 )

@@ -11,12 +11,19 @@ import (
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
 
+const (
+	testEvChk    = "66666666-6666-4666-8666-666666666606"
+	testUsReg    = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+	testUsStaff  = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+	testEvChkEmp = "77777777-7777-4777-8777-777777777707"
+)
+
 func TestCheckInByQRUseCase_Success(t *testing.T) {
 	repos := memory.NewRepositories()
 	uow := memory.NewUnitOfWork()
 	qr := memory.NewQRCodeService()
 	repos.SeedEvent(&domain.Event{
-		ID:       "event_ck_1",
+		ID:       testEvChk,
 		Status:   domain.EventStatusPublished,
 		Capacity: 10,
 		StartsAt: time.Now().UTC().Add(24 * time.Hour),
@@ -25,18 +32,19 @@ func TestCheckInByQRUseCase_Success(t *testing.T) {
 
 	registerUC := registration.NewRegisterForEventUseCase(uow, repos, repos, qr)
 	regOut, err := registerUC.Execute(context.Background(), registration.RegisterForEventInput{
-		ActorUserID: "user_1",
-		EventID:     "event_ck_1",
+		ActorUserID: testUsReg,
+		EventID:     testEvChk,
 	})
 	if err != nil {
 		t.Fatalf("register setup failed: %v", err)
 	}
 
-	checkinUC := NewCheckInByQRUseCase(repos)
+	checkinUC := NewCheckInByQRUseCase(uow, repos)
 	out, err := checkinUC.Execute(context.Background(), CheckInByQRInput{
-		ActorRole: domain.RoleTeamMember,
-		EventID:   "event_ck_1",
-		QRCode:    regOut.QRCodeValue,
+		ActorUserID: testUsStaff,
+		ActorRole:   domain.RoleTeamMember,
+		EventID:     testEvChk,
+		QRCode:      regOut.QRCodeValue,
 	})
 	if err != nil {
 		t.Fatalf("expected successful check-in validation, got %v", err)
@@ -48,11 +56,13 @@ func TestCheckInByQRUseCase_Success(t *testing.T) {
 
 func TestCheckInByQRUseCase_ForbiddenRole(t *testing.T) {
 	repos := memory.NewRepositories()
-	uc := NewCheckInByQRUseCase(repos)
+	uow := memory.NewUnitOfWork()
+	uc := NewCheckInByQRUseCase(uow, repos)
 	_, err := uc.Execute(context.Background(), CheckInByQRInput{
-		ActorRole: domain.RoleMember,
-		EventID:   "event_1",
-		QRCode:    "any",
+		ActorUserID: testUsReg,
+		ActorRole:   domain.RoleMember,
+		EventID:     testEvChk,
+		QRCode:      "any",
 	})
 	if err != sharedErrors.ErrForbidden {
 		t.Fatalf("expected ErrForbidden, got %v", err)
@@ -61,11 +71,13 @@ func TestCheckInByQRUseCase_ForbiddenRole(t *testing.T) {
 
 func TestCheckInByQRUseCase_InvalidQRCode(t *testing.T) {
 	repos := memory.NewRepositories()
-	uc := NewCheckInByQRUseCase(repos)
+	uow := memory.NewUnitOfWork()
+	uc := NewCheckInByQRUseCase(uow, repos)
 	_, err := uc.Execute(context.Background(), CheckInByQRInput{
-		ActorRole: domain.RoleOrganizer,
-		EventID:   "event_1",
-		QRCode:    "missing",
+		ActorUserID: testUsStaff,
+		ActorRole:   domain.RoleOrganizer,
+		EventID:     testEvChkEmp,
+		QRCode:      "missing",
 	})
 	if err != sharedErrors.ErrInvalidQRCode {
 		t.Fatalf("expected ErrInvalidQRCode, got %v", err)

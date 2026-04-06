@@ -17,6 +17,7 @@ func TestToGraphQLCode(t *testing.T) {
 		{"capacity", ErrCapacityReached, CodeCapacityReached},
 		{"invalid-qr", ErrInvalidQRCode, CodeInvalidQRCode},
 		{"registration-cancelled", ErrRegistrationCancelled, CodeRegistrationCancelled},
+		{"already-checked-in", ErrAlreadyCheckedIn, CodeAlreadyCheckedIn},
 	}
 
 	for _, tc := range tests {

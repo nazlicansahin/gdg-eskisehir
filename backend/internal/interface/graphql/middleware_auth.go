@@ -5,25 +5,18 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gdg-eskisehir/events/backend/internal/domain"
+	"github.com/gdg-eskisehir/events/backend/internal/application/ports"
+	apiauth "github.com/gdg-eskisehir/events/backend/internal/auth"
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
 
-type VerifiedToken struct {
-	FirebaseUID string
-}
-
 type tokenVerifier interface {
-	VerifyIDToken(ctx context.Context, rawToken string) (*VerifiedToken, error)
-}
-
-type userRoleLookup interface {
-	GetUserRoleByFirebaseUID(ctx context.Context, firebaseUID string) (userID string, role domain.Role, err error)
+	VerifyIDToken(ctx context.Context, rawToken string) (*apiauth.VerifiedToken, error)
 }
 
 func ActorMiddleware(
 	verifier tokenVerifier,
-	lookup userRoleLookup,
+	users ports.UserRepository,
 	next http.Handler,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,15 +38,20 @@ func ActorMiddleware(
 			return
 		}
 
-		userID, role, err := lookup.GetUserRoleByFirebaseUID(r.Context(), verified.FirebaseUID)
-		if err != nil || userID == "" || !role.IsValid() {
+		user, err := users.EnsureFromFirebase(
+			r.Context(),
+			verified.FirebaseUID,
+			verified.Email,
+			verified.DisplayName,
+		)
+		if err != nil || user == nil || user.ID == "" || !user.Role.IsValid() {
 			next.ServeHTTP(w, r.WithContext(withAuthError(r.Context(), sharedErrors.ErrUnauthorized)))
 			return
 		}
 
 		ctx := WithActor(r.Context(), Actor{
-			UserID: userID,
-			Role:   role,
+			UserID: user.ID,
+			Role:   user.Role,
 		})
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
