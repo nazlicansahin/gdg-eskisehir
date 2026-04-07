@@ -35,12 +35,12 @@ func NewAdminListRegistrationsUseCase(registrations ports.RegistrationRepository
 }
 
 type AdminListRegistrationsInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	EventID   string
 }
 
 func (uc *AdminListRegistrationsUseCase) Execute(ctx context.Context, in AdminListRegistrationsInput) ([]*domain.Registration, error) {
-	if err := policy.CanAccessAdminAPI(in.ActorRole); err != nil {
+	if err := policy.CanAccessAdminAPI(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {
@@ -58,13 +58,13 @@ func NewCancelRegistrationUseCase(registrations ports.RegistrationRepository) *C
 }
 
 type CancelRegistrationInput struct {
-	ActorRole      domain.Role
+	ActorRoles       []domain.Role
 	RegistrationID string
 	Reason         string
 }
 
 func (uc *CancelRegistrationUseCase) Execute(ctx context.Context, in CancelRegistrationInput) (*domain.Registration, error) {
-	if err := policy.CanCancelRegistration(in.ActorRole); err != nil {
+	if err := policy.CanCancelRegistration(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.RegistrationID); err != nil {

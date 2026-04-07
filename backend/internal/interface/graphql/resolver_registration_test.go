@@ -57,7 +57,7 @@ func TestRegisterAndMyTicketResolver_Success(t *testing.T) {
 	resolver := setupResolverForTicketFlow(t)
 	ctx := WithActor(context.Background(), Actor{
 		UserID: testUsGQL,
-		Role:   domain.RoleMember,
+		Roles:  []domain.Role{domain.RoleMember},
 	})
 
 	registerOut, err := resolver.Mutation().RegisterForEvent(ctx, testEvGQL)
@@ -81,7 +81,7 @@ func TestMyTicketResolver_NotFoundMapsToGraphQLCode(t *testing.T) {
 	resolver := setupResolverForTicketFlow(t)
 	ctx := WithActor(context.Background(), Actor{
 		UserID: testUsMiss,
-		Role:   domain.RoleMember,
+		Roles:  []domain.Role{domain.RoleMember},
 	})
 
 	_, err := resolver.Query().MyTicket(ctx, testEvGQL)

@@ -12,7 +12,7 @@ import (
 
 type CheckInManualInput struct {
 	ActorUserID    string
-	ActorRole      domain.Role
+	ActorRoles     []domain.Role
 	RegistrationID string
 }
 
@@ -35,7 +35,7 @@ func (uc *CheckInManualUseCase) Execute(
 	ctx context.Context,
 	in CheckInManualInput,
 ) (*CheckInManualOutput, error) {
-	if err := policy.CanCheckIn(in.ActorRole); err != nil {
+	if err := policy.CanCheckIn(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.ActorUserID); err != nil {

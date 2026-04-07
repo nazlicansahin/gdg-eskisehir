@@ -36,5 +36,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      return const Right(unit);
+    } on fb.FirebaseAuthException catch (e) {
+      return Left(AuthFailure(e.message ?? e.code));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<void> signOut() => _firebaseAuth.signOut();
 }

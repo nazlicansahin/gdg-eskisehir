@@ -10,8 +10,12 @@ No organization tables are present by design.
 - `firebase_uid` TEXT UNIQUE NOT NULL
 - `email` TEXT UNIQUE NOT NULL
 - `display_name` TEXT NOT NULL
-- `role` TEXT NOT NULL CHECK role IN (`member`, `team_member`, `organizer`, `super_admin`)
 - audit columns: `created_at`, `updated_at`, `updated_by`
+
+### `user_roles`
+
+- `user_id` UUID FK -> `users.id`, `role` TEXT (`member`, `team_member`, `crew`, `organizer`, `super_admin`)
+- composite PK (`user_id`, `role`); new signups get `member` by default; staff roles are granted by organizers (or full control by `super_admin`) via API
 
 ### `events`
 
@@ -123,7 +127,7 @@ No organization tables are present by design.
 - `checkInByQR(eventId, qrCode)`
 - `manualCheckIn(registrationId)`
 - `cancelRegistration(registrationId, reason)` (super_admin)
-- `assignUserRole(userId, role)` (super_admin)
+- `grantUserRole(userId, role)` / `revokeUserRole(userId, role)` (organizer: `team_member`/`crew` only; `super_admin`: any except revoking baseline `member`)
 
 ## Use-case oriented resolver pattern
 

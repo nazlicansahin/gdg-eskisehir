@@ -20,14 +20,14 @@ func NewCreateSpeakerUseCase(speakers ports.SpeakerRepository) *CreateSpeakerUse
 }
 
 type CreateSpeakerInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	FullName  string
 	Bio       string
 	AvatarURL string
 }
 
 func (uc *CreateSpeakerUseCase) Execute(ctx context.Context, in CreateSpeakerInput) (*domain.Speaker, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	name := strings.TrimSpace(in.FullName)
@@ -54,7 +54,7 @@ func NewUpdateSpeakerUseCase(speakers ports.SpeakerRepository) *UpdateSpeakerUse
 }
 
 type UpdateSpeakerInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	SpeakerID string
 	FullName  *string
 	Bio       *string
@@ -62,7 +62,7 @@ type UpdateSpeakerInput struct {
 }
 
 func (uc *UpdateSpeakerUseCase) Execute(ctx context.Context, in UpdateSpeakerInput) (*domain.Speaker, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.SpeakerID); err != nil {
@@ -104,13 +104,13 @@ func NewAttachSpeakerToSessionUseCase(
 }
 
 type AttachSpeakerToSessionInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	SessionID string
 	SpeakerID string
 }
 
 func (uc *AttachSpeakerToSessionUseCase) Execute(ctx context.Context, in AttachSpeakerToSessionInput) (*domain.Session, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.SessionID); err != nil {

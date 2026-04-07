@@ -13,7 +13,7 @@ import (
 
 type CheckInByQRInput struct {
 	ActorUserID string
-	ActorRole   domain.Role
+	ActorRoles  []domain.Role
 	EventID     string
 	QRCode      string
 }
@@ -37,7 +37,7 @@ func (uc *CheckInByQRUseCase) Execute(
 	ctx context.Context,
 	in CheckInByQRInput,
 ) (*CheckInByQROutput, error) {
-	if err := policy.CanCheckIn(in.ActorRole); err != nil {
+	if err := policy.CanCheckIn(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.ActorUserID); err != nil {

@@ -42,7 +42,7 @@ func TestCheckInByQRUseCase_Success(t *testing.T) {
 	checkinUC := NewCheckInByQRUseCase(uow, repos)
 	out, err := checkinUC.Execute(context.Background(), CheckInByQRInput{
 		ActorUserID: testUsStaff,
-		ActorRole:   domain.RoleTeamMember,
+		ActorRoles:  []domain.Role{domain.RoleTeamMember},
 		EventID:     testEvChk,
 		QRCode:      regOut.QRCodeValue,
 	})
@@ -60,7 +60,7 @@ func TestCheckInByQRUseCase_ForbiddenRole(t *testing.T) {
 	uc := NewCheckInByQRUseCase(uow, repos)
 	_, err := uc.Execute(context.Background(), CheckInByQRInput{
 		ActorUserID: testUsReg,
-		ActorRole:   domain.RoleMember,
+		ActorRoles:  []domain.Role{domain.RoleMember},
 		EventID:     testEvChk,
 		QRCode:      "any",
 	})
@@ -75,7 +75,7 @@ func TestCheckInByQRUseCase_InvalidQRCode(t *testing.T) {
 	uc := NewCheckInByQRUseCase(uow, repos)
 	_, err := uc.Execute(context.Background(), CheckInByQRInput{
 		ActorUserID: testUsStaff,
-		ActorRole:   domain.RoleOrganizer,
+		ActorRoles:  []domain.Role{domain.RoleOrganizer},
 		EventID:     testEvChkEmp,
 		QRCode:      "missing",
 	})

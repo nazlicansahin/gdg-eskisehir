@@ -5,6 +5,8 @@ import 'package:gdg_events/features/auth/data/auth_repository_impl.dart';
 import 'package:gdg_events/features/auth/domain/repositories/auth_repository.dart';
 import 'package:gdg_events/features/events/data/events_repository_impl.dart';
 import 'package:gdg_events/features/events/domain/repositories/events_repository.dart';
+import 'package:gdg_events/features/profile/data/profile_repository_impl.dart';
+import 'package:gdg_events/features/profile/domain/repositories/profile_repository.dart';
 import 'package:gdg_events/features/registration/data/registrations_repository_impl.dart';
 import 'package:gdg_events/features/registration/domain/repositories/registrations_repository.dart';
 import 'package:gdg_events/features/schedule/data/schedule_repository_impl.dart';
@@ -33,4 +35,8 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>(
 
 final speakersRepositoryProvider = Provider<SpeakersRepository>(
   (ref) => SpeakersRepositoryImpl(ref.watch(graphQLClientProvider)),
+);
+
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => ProfileRepositoryImpl(ref.watch(graphQLClientProvider)),
 );

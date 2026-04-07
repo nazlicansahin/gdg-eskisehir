@@ -7,7 +7,7 @@ type User struct {
 	FirebaseUID string
 	Email       string
 	DisplayName string
-	Role        Role
+	Roles       []Role
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

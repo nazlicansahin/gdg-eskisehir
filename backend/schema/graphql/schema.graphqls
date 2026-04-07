@@ -4,6 +4,7 @@ scalar JSON
 enum Role {
   member
   team_member
+  crew
   organizer
   super_admin
 }
@@ -23,7 +24,7 @@ type User {
   id: ID!
   email: String!
   displayName: String!
-  role: Role!
+  roles: [Role!]!
 }
 
 type Event {
@@ -159,5 +160,6 @@ type Mutation {
   manualCheckIn(registrationId: ID!): RegistrationTicket!
 
   cancelRegistration(registrationId: ID!, reason: String!): RegistrationTicket!
-  assignUserRole(userId: ID!, role: Role!): User!
+  grantUserRole(userId: ID!, role: Role!): User!
+  revokeUserRole(userId: ID!, role: Role!): User!
 }

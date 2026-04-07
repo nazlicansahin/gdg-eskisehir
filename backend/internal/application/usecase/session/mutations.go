@@ -22,7 +22,7 @@ func NewCreateSessionUseCase(events ports.EventRepository, sessions ports.Sessio
 }
 
 type CreateSessionInput struct {
-	ActorRole   domain.Role
+	ActorRoles  []domain.Role
 	EventID     string
 	Title       string
 	Description string
@@ -32,7 +32,7 @@ type CreateSessionInput struct {
 }
 
 func (uc *CreateSessionUseCase) Execute(ctx context.Context, in CreateSessionInput) (*domain.Session, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {
@@ -76,7 +76,7 @@ func NewUpdateSessionUseCase(sessions ports.SessionRepository) *UpdateSessionUse
 }
 
 type UpdateSessionInput struct {
-	ActorRole   domain.Role
+	ActorRoles  []domain.Role
 	SessionID   string
 	Title       *string
 	Description *string
@@ -86,7 +86,7 @@ type UpdateSessionInput struct {
 }
 
 func (uc *UpdateSessionUseCase) Execute(ctx context.Context, in UpdateSessionInput) (*domain.Session, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.SessionID); err != nil {

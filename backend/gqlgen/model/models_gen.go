@@ -116,7 +116,7 @@ type User struct {
 	ID          string `json:"id"`
 	Email       string `json:"email"`
 	DisplayName string `json:"displayName"`
-	Role        Role   `json:"role"`
+	Roles       []Role `json:"roles"`
 }
 
 type EventStatus string
@@ -208,6 +208,7 @@ type Role string
 const (
 	RoleMember     Role = "member"
 	RoleTeamMember Role = "team_member"
+	RoleCrew       Role = "crew"
 	RoleOrganizer  Role = "organizer"
 	RoleSuperAdmin Role = "super_admin"
 )
@@ -215,13 +216,14 @@ const (
 var AllRole = []Role{
 	RoleMember,
 	RoleTeamMember,
+	RoleCrew,
 	RoleOrganizer,
 	RoleSuperAdmin,
 }
 
 func (e Role) IsValid() bool {
 	switch e {
-	case RoleMember, RoleTeamMember, RoleOrganizer, RoleSuperAdmin:
+	case RoleMember, RoleTeamMember, RoleCrew, RoleOrganizer, RoleSuperAdmin:
 		return true
 	}
 	return false

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gdg-eskisehir/events/backend/internal/application/ports"
 	apiauth "github.com/gdg-eskisehir/events/backend/internal/auth"
+	"github.com/gdg-eskisehir/events/backend/internal/domain"
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
 
@@ -44,14 +45,14 @@ func ActorMiddleware(
 			verified.Email,
 			verified.DisplayName,
 		)
-		if err != nil || user == nil || user.ID == "" || !user.Role.IsValid() {
+		if err != nil || user == nil || user.ID == "" || !domain.RolesValid(user.Roles) {
 			next.ServeHTTP(w, r.WithContext(withAuthError(r.Context(), sharedErrors.ErrUnauthorized)))
 			return
 		}
 
 		ctx := WithActor(r.Context(), Actor{
 			UserID: user.ID,
-			Role:   user.Role,
+			Roles:  user.Roles,
 		})
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

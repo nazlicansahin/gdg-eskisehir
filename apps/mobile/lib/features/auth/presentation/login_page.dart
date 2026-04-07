@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/providers.dart';
@@ -16,6 +17,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   var _loading = false;
+  var _registerMode = false;
 
   @override
   void dispose() {
@@ -42,11 +44,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in with Firebase (email / password).',
+                  'Sign in or create an account (email / password).',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment<bool>(
+                      value: false,
+                      label: Text('Sign in'),
+                    ),
+                    ButtonSegment<bool>(
+                      value: true,
+                      label: Text('Create account'),
+                    ),
+                  ],
+                  selected: {_registerMode},
+                  onSelectionChanged: (s) =>
+                      setState(() => _registerMode = s.first),
+                ),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: _email,
                   decoration: const InputDecoration(labelText: 'Email'),
@@ -73,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           width: 24,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Sign in'),
+                      : Text(_registerMode ? 'Create account' : 'Sign in'),
                 ),
               ],
             ),
@@ -88,10 +106,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       return;
     }
     setState(() => _loading = true);
-    final r = await ref.read(authRepositoryProvider).signInWithEmail(
-          email: _email.text,
-          password: _password.text,
-        );
+    final r = _registerMode
+        ? await ref.read(authRepositoryProvider).signUpWithEmail(
+              email: _email.text,
+              password: _password.text,
+            )
+        : await ref.read(authRepositoryProvider).signInWithEmail(
+              email: _email.text,
+              password: _password.text,
+            );
     if (!mounted) {
       return;
     }
@@ -102,7 +125,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           SnackBar(content: Text(f.asUserMessage)),
         );
       },
-      (_) => context.go('/events'),
+      (_) async {
+        await FirebaseAuth.instance.currentUser?.getIdToken(true);
+        if (!mounted) {
+          return;
+        }
+        context.go('/events');
+      },
     );
   }
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/session"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/speaker"
 	appuser "github.com/gdg-eskisehir/events/backend/internal/application/usecase/user"
+	"github.com/gdg-eskisehir/events/backend/internal/application/policy"
 	"github.com/gdg-eskisehir/events/backend/internal/domain"
 	graphqlctx "github.com/gdg-eskisehir/events/backend/internal/interface/graphql"
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
@@ -46,7 +47,8 @@ type Resolver struct {
 	UpdateSpeakerUC   *speaker.UpdateSpeakerUseCase
 	AttachSpeaker     *speaker.AttachSpeakerToSessionUseCase
 	UpdateProfile     *appuser.UpdateMyProfileUseCase
-	AssignRole        *appuser.AssignUserRoleUseCase
+	GrantRole         *appuser.GrantUserRoleUseCase
+	RevokeRole        *appuser.RevokeUserRoleUseCase
 	AdminUsersExec    *appuser.AdminListUsersUseCase
 	MyRegs            *registration.ListMyRegistrationsUseCase
 	AdminRegs         *registration.AdminListRegistrationsUseCase
@@ -75,11 +77,15 @@ func toModelUser(u *domain.User) *model.User {
 	if u == nil {
 		return nil
 	}
+	roles := make([]model.Role, 0, len(u.Roles))
+	for _, r := range u.Roles {
+		roles = append(roles, model.Role(r))
+	}
 	return &model.User{
 		ID:          u.ID,
 		Email:       u.Email,
 		DisplayName: u.DisplayName,
-		Role:        model.Role(u.Role),
+		Roles:       roles,
 	}
 }
 
@@ -222,7 +228,7 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEv
 		desc = *input.Description
 	}
 	e, err := r.CreateEventExec.Execute(ctx, event.CreateEventInput{
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		Title:       input.Title,
 		Description: desc,
 		Capacity:    input.Capacity,
@@ -241,7 +247,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 		return nil, gqlAPIError(err)
 	}
 	e, err := r.UpdateEventExec.Execute(ctx, event.UpdateEventInput{
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		EventID:     input.ID,
 		Title:       input.Title,
 		Description: input.Description,
@@ -260,7 +266,7 @@ func (r *mutationResolver) PublishEvent(ctx context.Context, eventID string) (*m
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
-	e, err := r.PublishEventExec.Execute(ctx, event.PublishEventInput{ActorRole: actor.Role, EventID: eventID})
+	e, err := r.PublishEventExec.Execute(ctx, event.PublishEventInput{ActorRoles: actor.Roles, EventID: eventID})
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
@@ -273,7 +279,7 @@ func (r *mutationResolver) CancelEvent(ctx context.Context, eventID string, reas
 		return nil, gqlAPIError(err)
 	}
 	e, err := r.CancelEventExec.Execute(ctx, event.CancelEventInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		EventID:   eventID,
 		Reason:    reason,
 	})
@@ -297,7 +303,7 @@ func (r *mutationResolver) CreateSession(ctx context.Context, input model.Create
 		room = *input.Room
 	}
 	s, err := r.CreateSessionExec.Execute(ctx, session.CreateSessionInput{
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		EventID:     input.EventID,
 		Title:       input.Title,
 		Description: desc,
@@ -317,7 +323,7 @@ func (r *mutationResolver) UpdateSession(ctx context.Context, input model.Update
 		return nil, gqlAPIError(err)
 	}
 	s, err := r.UpdateSessionExec.Execute(ctx, session.UpdateSessionInput{
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		SessionID:   input.ID,
 		Title:       input.Title,
 		Description: input.Description,
@@ -345,7 +351,7 @@ func (r *mutationResolver) CreateSpeaker(ctx context.Context, input model.Create
 		avatar = *input.AvatarURL
 	}
 	s, err := r.CreateSpeakerExec.Execute(ctx, speaker.CreateSpeakerInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		FullName:  input.FullName,
 		Bio:       bio,
 		AvatarURL: avatar,
@@ -362,7 +368,7 @@ func (r *mutationResolver) UpdateSpeaker(ctx context.Context, input model.Update
 		return nil, gqlAPIError(err)
 	}
 	s, err := r.UpdateSpeakerUC.Execute(ctx, speaker.UpdateSpeakerInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		SpeakerID: input.ID,
 		FullName:  input.FullName,
 		Bio:       input.Bio,
@@ -380,7 +386,7 @@ func (r *mutationResolver) AttachSpeakerToSession(ctx context.Context, sessionID
 		return nil, gqlAPIError(err)
 	}
 	s, err := r.AttachSpeaker.Execute(ctx, speaker.AttachSpeakerToSessionInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		SessionID: sessionID,
 		SpeakerID: speakerID,
 	})
@@ -397,7 +403,7 @@ func (r *mutationResolver) CheckInByQR(ctx context.Context, eventID string, qrCo
 	}
 	out, err := r.CheckInQR.Execute(ctx, checkin.CheckInByQRInput{
 		ActorUserID: actor.UserID,
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		EventID:     eventID,
 		QRCode:      qrCode,
 	})
@@ -418,7 +424,7 @@ func (r *mutationResolver) ManualCheckIn(ctx context.Context, registrationID str
 	}
 	out, err := r.CheckManual.Execute(ctx, checkin.CheckInManualInput{
 		ActorUserID:    actor.UserID,
-		ActorRole:      actor.Role,
+		ActorRoles:     actor.Roles,
 		RegistrationID: registrationID,
 	})
 	if err != nil {
@@ -437,7 +443,7 @@ func (r *mutationResolver) CancelRegistration(ctx context.Context, registrationI
 		return nil, gqlAPIError(err)
 	}
 	reg, err := r.CancelReg.Execute(ctx, registration.CancelRegistrationInput{
-		ActorRole:      actor.Role,
+		ActorRoles:       actor.Roles,
 		RegistrationID: registrationID,
 		Reason:         reason,
 	})
@@ -447,15 +453,31 @@ func (r *mutationResolver) CancelRegistration(ctx context.Context, registrationI
 	return toModelTicket(reg), nil
 }
 
-func (r *mutationResolver) AssignUserRole(ctx context.Context, userID string, role model.Role) (*model.User, error) {
+func (r *mutationResolver) GrantUserRole(ctx context.Context, userID string, role model.Role) (*model.User, error) {
 	actor, err := graphqlctx.ActorFromContext(ctx)
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
-	u, err := r.AssignRole.Execute(ctx, appuser.AssignUserRoleInput{
-		ActorRole: actor.Role,
-		UserID:    userID,
-		Role:      domain.Role(role),
+	u, err := r.GrantRole.Execute(ctx, appuser.GrantUserRoleInput{
+		ActorRoles: actor.Roles,
+		UserID:     userID,
+		Role:       domain.Role(role),
+	})
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	return toModelUser(u), nil
+}
+
+func (r *mutationResolver) RevokeUserRole(ctx context.Context, userID string, role model.Role) (*model.User, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	u, err := r.RevokeRole.Execute(ctx, appuser.RevokeUserRoleInput{
+		ActorRoles: actor.Roles,
+		UserID:     userID,
+		Role:       domain.Role(role),
 	})
 	if err != nil {
 		return nil, gqlAPIError(err)
@@ -500,9 +522,9 @@ func (r *queryResolver) EventSchedule(ctx context.Context, eventID string) ([]*m
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
-	reqPub := actor.Role != domain.RoleOrganizer && actor.Role != domain.RoleSuperAdmin
+	reqPub := policy.CanAccessAdminAPI(actor.Roles) != nil
 	rows, err := r.ListSchedule.Execute(ctx, schedule.ListEventScheduleInput{
-		ActorRole:        actor.Role,
+		ActorRoles:       actor.Roles,
 		EventID:          eventID,
 		RequirePublished: reqPub,
 	})
@@ -615,7 +637,7 @@ func (r *queryResolver) AdminEvents(ctx context.Context, filter *model.EventFilt
 		return nil, gqlAPIError(err)
 	}
 	evs, err := r.AdminListEvents.Execute(ctx, event.AdminListEventsInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		Status:    domainEventStatus(filter),
 	})
 	if err != nil {
@@ -633,7 +655,7 @@ func (r *queryResolver) AdminEvent(ctx context.Context, id string) (*model.Event
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
-	e, err := r.AdminGetEvent.Execute(ctx, event.AdminGetEventInput{ActorRole: actor.Role, EventID: id})
+	e, err := r.AdminGetEvent.Execute(ctx, event.AdminGetEventInput{ActorRoles: actor.Roles, EventID: id})
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
@@ -646,7 +668,7 @@ func (r *queryResolver) AdminRegistrations(ctx context.Context, eventID string) 
 		return nil, gqlAPIError(err)
 	}
 	regs, err := r.AdminRegs.Execute(ctx, registration.AdminListRegistrationsInput{
-		ActorRole: actor.Role,
+		ActorRoles: actor.Roles,
 		EventID:   eventID,
 	})
 	if err != nil {
@@ -664,7 +686,7 @@ func (r *queryResolver) AdminUsers(ctx context.Context) ([]*model.User, error) {
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
-	users, err := r.AdminUsersExec.Execute(ctx, actor.Role)
+	users, err := r.AdminUsersExec.Execute(ctx, actor.Roles)
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}

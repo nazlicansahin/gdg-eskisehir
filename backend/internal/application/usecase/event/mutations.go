@@ -21,7 +21,7 @@ func NewCreateEventUseCase(events ports.EventRepository) *CreateEventUseCase {
 }
 
 type CreateEventInput struct {
-	ActorRole   domain.Role
+	ActorRoles  []domain.Role
 	Title       string
 	Description string
 	Capacity    int
@@ -30,7 +30,7 @@ type CreateEventInput struct {
 }
 
 func (uc *CreateEventUseCase) Execute(ctx context.Context, in CreateEventInput) (*domain.Event, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validateEventTimesAndCapacity(in.Capacity, in.StartsAt, in.EndsAt); err != nil {
@@ -63,7 +63,7 @@ func NewUpdateEventUseCase(events ports.EventRepository) *UpdateEventUseCase {
 }
 
 type UpdateEventInput struct {
-	ActorRole   domain.Role
+	ActorRoles  []domain.Role
 	EventID     string
 	Title       *string
 	Description *string
@@ -73,7 +73,7 @@ type UpdateEventInput struct {
 }
 
 func (uc *UpdateEventUseCase) Execute(ctx context.Context, in UpdateEventInput) (*domain.Event, error) {
-	if err := policy.CanCreateEvent(in.ActorRole); err != nil {
+	if err := policy.CanCreateEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {
@@ -124,12 +124,12 @@ func NewPublishEventUseCase(events ports.EventRepository) *PublishEventUseCase {
 }
 
 type PublishEventInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	EventID   string
 }
 
 func (uc *PublishEventUseCase) Execute(ctx context.Context, in PublishEventInput) (*domain.Event, error) {
-	if err := policy.CanPublishEvent(in.ActorRole); err != nil {
+	if err := policy.CanPublishEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {
@@ -160,13 +160,13 @@ func NewCancelEventUseCase(events ports.EventRepository) *CancelEventUseCase {
 }
 
 type CancelEventInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	EventID   string
 	Reason    string
 }
 
 func (uc *CancelEventUseCase) Execute(ctx context.Context, in CancelEventInput) (*domain.Event, error) {
-	if err := policy.CanCancelEvent(in.ActorRole); err != nil {
+	if err := policy.CanCancelEvent(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {

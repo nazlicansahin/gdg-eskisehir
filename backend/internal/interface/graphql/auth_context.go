@@ -11,7 +11,7 @@ type actorContextKey struct{}
 
 type Actor struct {
 	UserID string
-	Role   domain.Role
+	Roles  []domain.Role
 }
 
 func WithActor(ctx context.Context, actor Actor) context.Context {
@@ -21,7 +21,7 @@ func WithActor(ctx context.Context, actor Actor) context.Context {
 func ActorFromContext(ctx context.Context) (Actor, error) {
 	value := ctx.Value(actorContextKey{})
 	actor, ok := value.(Actor)
-	if !ok || actor.UserID == "" || !actor.Role.IsValid() {
+	if !ok || actor.UserID == "" || !domain.RolesValid(actor.Roles) {
 		return Actor{}, sharedErrors.ErrUnauthorized
 	}
 	return actor, nil

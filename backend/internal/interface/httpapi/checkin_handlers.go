@@ -40,7 +40,7 @@ func (h *CheckinHandlers) CheckInByQR(w http.ResponseWriter, r *http.Request) {
 	}
 	out, err := h.QR.Execute(r.Context(), checkin.CheckInByQRInput{
 		ActorUserID: actor.UserID,
-		ActorRole:   actor.Role,
+		ActorRoles:  actor.Roles,
 		EventID:     eventID,
 		QRCode:      body.QRCode,
 	})
@@ -72,7 +72,7 @@ func (h *CheckinHandlers) CheckInManual(w http.ResponseWriter, r *http.Request) 
 	}
 	out, err := h.Manual.Execute(r.Context(), checkin.CheckInManualInput{
 		ActorUserID:    actor.UserID,
-		ActorRole:      actor.Role,
+		ActorRoles:     actor.Roles,
 		RegistrationID: registrationID,
 	})
 	if err != nil {

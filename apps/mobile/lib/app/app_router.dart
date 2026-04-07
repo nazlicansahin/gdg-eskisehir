@@ -4,6 +4,7 @@ import 'package:gdg_events/app/auth_refresh.dart';
 import 'package:gdg_events/features/auth/presentation/login_page.dart';
 import 'package:gdg_events/features/events/presentation/event_detail_page.dart';
 import 'package:gdg_events/features/events/presentation/events_list_page.dart';
+import 'package:gdg_events/features/checkin/presentation/checkin_scan_page.dart';
 import 'package:gdg_events/features/profile/presentation/profile_page.dart';
 import 'package:gdg_events/features/registration/presentation/ticket_page.dart';
 import 'package:gdg_events/features/registration/presentation/tickets_list_page.dart';
@@ -19,11 +20,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
-      final loggingIn = state.matchedLocation == '/login';
-      if (!loggedIn && !loggingIn) {
+      final onAuthPage = state.uri.path == '/login';
+      if (!loggedIn && !onAuthPage) {
         return '/login';
       }
-      if (loggedIn && loggingIn) {
+      if (loggedIn && onAuthPage) {
         return '/events';
       }
       return null;
@@ -71,6 +72,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ProfilePage(),
             ),
+          ),
+          GoRoute(
+            path: '/check-in',
+            builder: (context, state) {
+              final eventId = state.uri.queryParameters['eventId'];
+              return CheckInScanPage(initialEventId: eventId);
+            },
           ),
         ],
       ),

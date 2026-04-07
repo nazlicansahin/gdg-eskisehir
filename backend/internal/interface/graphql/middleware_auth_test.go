@@ -32,7 +32,7 @@ func (f *fakeUsers) EnsureFromFirebase(
 	firebaseUID, _, _ string,
 ) (*domain.User, error) {
 	u := f.uidToUser[firebaseUID]
-	if u == nil || u.ID == "" || !u.Role.IsValid() {
+	if u == nil || u.ID == "" || !domain.RolesValid(u.Roles) {
 		return nil, sharedErrors.ErrUnauthorized
 	}
 	return u, nil
@@ -61,7 +61,11 @@ func (f *fakeUsers) ListAll(_ context.Context) ([]*domain.User, error) {
 	return out, nil
 }
 
-func (f *fakeUsers) UpdateRole(_ context.Context, _ string, _ domain.Role) error {
+func (f *fakeUsers) GrantRole(_ context.Context, _ string, _ domain.Role) error {
+	return nil
+}
+
+func (f *fakeUsers) RevokeRole(_ context.Context, _ string, _ domain.Role) error {
 	return nil
 }
 
@@ -69,7 +73,7 @@ func TestActorMiddleware_InjectsActorOnValidBearer(t *testing.T) {
 	verifier := &fakeVerifier{tokenToUID: map[string]string{"valid-token": "firebase_1"}}
 	users := &fakeUsers{
 		uidToUser: map[string]*domain.User{
-			"firebase_1": {ID: "user_1", Role: domain.RoleMember},
+			"firebase_1": {ID: "user_1", Roles: []domain.Role{domain.RoleMember}},
 		},
 	}
 
@@ -92,7 +96,7 @@ func TestActorMiddleware_InjectsActorOnValidBearer(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
-	if gotActor.UserID != "user_1" || gotActor.Role != domain.RoleMember {
+	if gotActor.UserID != "user_1" || len(gotActor.Roles) != 1 || gotActor.Roles[0] != domain.RoleMember {
 		t.Fatalf("unexpected actor: %+v", gotActor)
 	}
 }

@@ -19,12 +19,12 @@ func NewAdminListEventsUseCase(events ports.EventRepository) *AdminListEventsUse
 }
 
 type AdminListEventsInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	Status    *domain.EventStatus
 }
 
 func (uc *AdminListEventsUseCase) Execute(ctx context.Context, in AdminListEventsInput) ([]*domain.Event, error) {
-	if err := policy.CanAccessAdminAPI(in.ActorRole); err != nil {
+	if err := policy.CanAccessAdminAPI(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	return uc.events.List(ctx, ports.EventListFilter{PublishedOnly: false, Status: in.Status})
@@ -39,12 +39,12 @@ func NewAdminGetEventUseCase(events ports.EventRepository) *AdminGetEventUseCase
 }
 
 type AdminGetEventInput struct {
-	ActorRole domain.Role
+	ActorRoles []domain.Role
 	EventID   string
 }
 
 func (uc *AdminGetEventUseCase) Execute(ctx context.Context, in AdminGetEventInput) (*domain.Event, error) {
-	if err := policy.CanAccessAdminAPI(in.ActorRole); err != nil {
+	if err := policy.CanAccessAdminAPI(in.ActorRoles); err != nil {
 		return nil, err
 	}
 	if err := validation.RequireUUID(in.EventID); err != nil {

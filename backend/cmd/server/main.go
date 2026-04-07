@@ -73,7 +73,8 @@ func main() {
 	updateSpk := speaker.NewUpdateSpeakerUseCase(speakerRepo)
 	attachSpk := speaker.NewAttachSpeakerToSessionUseCase(eventRepo, sessionRepo, speakerRepo)
 	updateProfile := appuser.NewUpdateMyProfileUseCase(userRepo)
-	assignRole := appuser.NewAssignUserRoleUseCase(userRepo)
+	grantRole := appuser.NewGrantUserRoleUseCase(userRepo)
+	revokeRole := appuser.NewRevokeUserRoleUseCase(userRepo)
 	adminUsers := appuser.NewAdminListUsersUseCase(userRepo)
 	myRegs := registration.NewListMyRegistrationsUseCase(regRepo)
 	adminRegs := registration.NewAdminListRegistrationsUseCase(regRepo)
@@ -126,7 +127,8 @@ func main() {
 			UpdateSpeakerUC:   updateSpk,
 			AttachSpeaker:     attachSpk,
 			UpdateProfile:     updateProfile,
-			AssignRole:        assignRole,
+			GrantRole:         grantRole,
+			RevokeRole:        revokeRole,
 			AdminUsersExec:    adminUsers,
 			MyRegs:            myRegs,
 			AdminRegs:         adminRegs,

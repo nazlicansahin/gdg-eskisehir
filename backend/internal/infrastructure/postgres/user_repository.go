@@ -38,6 +38,26 @@ func normalizeDisplayName(email, displayName string) string {
 	return "Member"
 }
 
+func (r *UserRepository) loadRoles(ctx context.Context, userID string) ([]domain.Role, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT role::text FROM user_roles WHERE user_id = $1::uuid ORDER BY role
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var roles []domain.Role
+	for rows.Next() {
+		var s string
+		if err := rows.Scan(&s); err != nil {
+			return nil, err
+		}
+		roles = append(roles, domain.Role(s))
+	}
+	return roles, rows.Err()
+}
+
 func (r *UserRepository) EnsureFromFirebase(
 	ctx context.Context,
 	firebaseUID, email, displayName string,
@@ -46,40 +66,65 @@ func (r *UserRepository) EnsureFromFirebase(
 	displayName = normalizeDisplayName(email, displayName)
 
 	row := r.db.QueryRow(ctx, `
-		INSERT INTO users (firebase_uid, email, display_name, role)
-		VALUES ($1, $2, $3, 'member')
+		INSERT INTO users (firebase_uid, email, display_name)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (firebase_uid) DO UPDATE SET
 			email = EXCLUDED.email,
 			display_name = EXCLUDED.display_name,
 			updated_at = now()
-		RETURNING id::text, firebase_uid, email, display_name, role::text, created_at, updated_at
+		RETURNING id::text, firebase_uid, email, display_name, created_at, updated_at
 	`, firebaseUID, email, displayName)
 
 	var u domain.User
-	var role string
-	if err := row.Scan(&u.ID, &u.FirebaseUID, &u.Email, &u.DisplayName, &role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+	if err := row.Scan(
+		&u.ID,
+		&u.FirebaseUID,
+		&u.Email,
+		&u.DisplayName,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	); err != nil {
 		return nil, err
 	}
-	u.Role = domain.Role(role)
+	if err := r.db.Exec(ctx, `
+		INSERT INTO user_roles (user_id, role) VALUES ($1::uuid, 'member') ON CONFLICT DO NOTHING
+	`, u.ID); err != nil {
+		return nil, err
+	}
+	roles, err := r.loadRoles(ctx, u.ID)
+	if err != nil {
+		return nil, err
+	}
+	u.Roles = roles
 	return &u, nil
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id::text, firebase_uid, email, display_name, role::text, created_at, updated_at
+		SELECT id::text, firebase_uid, email, display_name, created_at, updated_at
 		FROM users
 		WHERE id = $1::uuid
 	`, id)
 
 	var u domain.User
-	var role string
-	if err := row.Scan(&u.ID, &u.FirebaseUID, &u.Email, &u.DisplayName, &role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+	if err := row.Scan(
+		&u.ID,
+		&u.FirebaseUID,
+		&u.Email,
+		&u.DisplayName,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, sharedErrors.ErrNotFound
 		}
 		return nil, err
 	}
-	u.Role = domain.Role(role)
+	roles, err := r.loadRoles(ctx, u.ID)
+	if err != nil {
+		return nil, err
+	}
+	u.Roles = roles
 	return &u, nil
 }
 
@@ -91,9 +136,19 @@ func (r *UserRepository) UpdateDisplayName(ctx context.Context, userID, displayN
 
 func (r *UserRepository) ListAll(ctx context.Context) ([]*domain.User, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id::text, firebase_uid, email, display_name, role::text, created_at, updated_at
-		FROM users
-		ORDER BY created_at ASC
+		SELECT
+			u.id::text,
+			u.firebase_uid,
+			u.email,
+			u.display_name,
+			u.created_at,
+			u.updated_at,
+			COALESCE(
+				(SELECT array_agg(ur.role ORDER BY ur.role) FROM user_roles ur WHERE ur.user_id = u.id),
+				ARRAY[]::text[]
+			)
+		FROM users u
+		ORDER BY u.created_at ASC
 	`)
 	if err != nil {
 		return nil, err
@@ -103,19 +158,36 @@ func (r *UserRepository) ListAll(ctx context.Context) ([]*domain.User, error) {
 	var out []*domain.User
 	for rows.Next() {
 		var u domain.User
-		var role string
-		if err := rows.Scan(&u.ID, &u.FirebaseUID, &u.Email, &u.DisplayName, &role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		var roles []string
+		if err := rows.Scan(
+			&u.ID,
+			&u.FirebaseUID,
+			&u.Email,
+			&u.DisplayName,
+			&u.CreatedAt,
+			&u.UpdatedAt,
+			&roles,
+		); err != nil {
 			return nil, err
 		}
-		u.Role = domain.Role(role)
+		u.Roles = make([]domain.Role, 0, len(roles))
+		for _, s := range roles {
+			u.Roles = append(u.Roles, domain.Role(s))
+		}
 		out = append(out, &u)
 	}
 	return out, rows.Err()
 }
 
-func (r *UserRepository) UpdateRole(ctx context.Context, userID string, role domain.Role) error {
+func (r *UserRepository) GrantRole(ctx context.Context, userID string, role domain.Role) error {
 	return r.db.Exec(ctx, `
-		UPDATE users SET role = $2, updated_at = now() WHERE id = $1::uuid
+		INSERT INTO user_roles (user_id, role) VALUES ($1::uuid, $2) ON CONFLICT DO NOTHING
+	`, userID, string(role))
+}
+
+func (r *UserRepository) RevokeRole(ctx context.Context, userID string, role domain.Role) error {
+	return r.db.Exec(ctx, `
+		DELETE FROM user_roles WHERE user_id = $1::uuid AND role = $2
 	`, userID, string(role))
 }
 

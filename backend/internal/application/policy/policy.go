@@ -5,58 +5,86 @@ import (
 	sharedErrors "github.com/gdg-eskisehir/events/backend/shared/errors"
 )
 
-func CanCheckIn(role domain.Role) error {
-	switch role {
-	case domain.RoleTeamMember, domain.RoleOrganizer, domain.RoleSuperAdmin:
-		return nil
-	default:
-		return sharedErrors.ErrForbidden
+func CanCheckIn(roles []domain.Role) error {
+	for _, r := range roles {
+		switch r {
+		case domain.RoleTeamMember, domain.RoleCrew, domain.RoleOrganizer, domain.RoleSuperAdmin:
+			return nil
+		}
 	}
+	return sharedErrors.ErrForbidden
 }
 
-func CanCreateEvent(role domain.Role) error {
-	switch role {
-	case domain.RoleOrganizer, domain.RoleSuperAdmin:
-		return nil
-	default:
-		return sharedErrors.ErrForbidden
+func CanCreateEvent(roles []domain.Role) error {
+	for _, r := range roles {
+		switch r {
+		case domain.RoleOrganizer, domain.RoleSuperAdmin:
+			return nil
+		}
 	}
+	return sharedErrors.ErrForbidden
 }
 
-func CanPublishEvent(role domain.Role) error {
-	switch role {
-	case domain.RoleOrganizer, domain.RoleSuperAdmin:
-		return nil
-	default:
-		return sharedErrors.ErrForbidden
-	}
+func CanPublishEvent(roles []domain.Role) error {
+	return CanCreateEvent(roles)
 }
 
-func CanCancelRegistration(role domain.Role) error {
-	if role == domain.RoleSuperAdmin {
+func CanCancelRegistration(roles []domain.Role) error {
+	if domain.RolesContain(roles, domain.RoleSuperAdmin) {
 		return nil
 	}
 	return sharedErrors.ErrForbidden
 }
 
-func CanManageRoles(role domain.Role) error {
-	if role == domain.RoleSuperAdmin {
+// CanGrantUserRole: super_admin may assign any valid role; organizer may assign team_member or crew only.
+func CanGrantUserRole(actor []domain.Role, target domain.Role) error {
+	if !target.IsValid() {
+		return sharedErrors.ErrValidation
+	}
+	if domain.RolesContain(actor, domain.RoleSuperAdmin) {
 		return nil
+	}
+	if domain.RolesContain(actor, domain.RoleOrganizer) {
+		if target == domain.RoleTeamMember || target == domain.RoleCrew {
+			return nil
+		}
+		return sharedErrors.ErrForbidden
+	}
+	return sharedErrors.ErrForbidden
+}
+
+// CanRevokeUserRole: cannot revoke baseline member; organizer may revoke team_member or crew only.
+func CanRevokeUserRole(actor []domain.Role, target domain.Role) error {
+	if target == domain.RoleMember {
+		return sharedErrors.ErrForbidden
+	}
+	if !target.IsValid() {
+		return sharedErrors.ErrValidation
+	}
+	if domain.RolesContain(actor, domain.RoleSuperAdmin) {
+		return nil
+	}
+	if domain.RolesContain(actor, domain.RoleOrganizer) {
+		if target == domain.RoleTeamMember || target == domain.RoleCrew {
+			return nil
+		}
+		return sharedErrors.ErrForbidden
 	}
 	return sharedErrors.ErrForbidden
 }
 
 // CanAccessAdminAPI allows organizer-facing queries (events list, registrations, users).
-func CanAccessAdminAPI(role domain.Role) error {
-	switch role {
-	case domain.RoleOrganizer, domain.RoleSuperAdmin:
-		return nil
-	default:
-		return sharedErrors.ErrForbidden
+func CanAccessAdminAPI(roles []domain.Role) error {
+	for _, r := range roles {
+		switch r {
+		case domain.RoleOrganizer, domain.RoleSuperAdmin:
+			return nil
+		}
 	}
+	return sharedErrors.ErrForbidden
 }
 
 // CanCancelEvent allows transitioning an event to cancelled.
-func CanCancelEvent(role domain.Role) error {
-	return CanPublishEvent(role)
+func CanCancelEvent(roles []domain.Role) error {
+	return CanPublishEvent(roles)
 }

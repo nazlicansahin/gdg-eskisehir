@@ -31,7 +31,7 @@ func NewListEventScheduleUseCase(
 }
 
 type ListEventScheduleInput struct {
-	ActorRole domain.Role // used when RequirePublished is false (admin path)
+	ActorRoles []domain.Role // used when RequirePublished is false (admin path)
 	EventID   string
 	// When true, event must be published (user-facing query).
 	RequirePublished bool
@@ -53,7 +53,7 @@ func (uc *ListEventScheduleUseCase) Execute(ctx context.Context, in ListEventSch
 			return nil, sharedErrors.ErrNotFound
 		}
 	} else {
-		if err := policy.CanAccessAdminAPI(in.ActorRole); err != nil {
+		if err := policy.CanAccessAdminAPI(in.ActorRoles); err != nil {
 			return nil, err
 		}
 	}
