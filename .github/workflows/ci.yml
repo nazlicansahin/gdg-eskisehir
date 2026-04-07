@@ -27,3 +27,18 @@ jobs:
           go-version: "1.22"
       - name: Run tests
         run: go test ./...
+
+  flutter-analyze:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: pub get
+        run: flutter pub get
+      - name: analyze
+        run: flutter analyze
