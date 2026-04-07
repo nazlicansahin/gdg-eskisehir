@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/core/errors/failure_exception.dart';
 import 'package:gdg_events/core/errors/failures.dart';
+import 'package:gdg_events/features/events/presentation/events_providers.dart';
 import 'package:gdg_events/features/registration/presentation/registration_providers.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,16 +11,19 @@ class TicketsListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(myRegistrationsProvider);
+    final ticketsAsync = ref.watch(myRegistrationsProvider);
+    final eventsAsync = ref.watch(eventsListProvider);
+    final eventTitleByID = {
+      for (final e in eventsAsync.valueOrNull ?? const []) e.id: e.title,
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('My tickets')),
-      body: async.when(
+      body: ticketsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) {
-          final msg = e is FailureException
-              ? e.failure.asUserMessage
-              : e.toString();
+          final msg =
+              e is FailureException ? e.failure.asUserMessage : e.toString();
           return Center(child: Text(msg));
         },
         data: (tickets) {
@@ -33,7 +37,8 @@ class TicketsListPage extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final t = tickets[i];
                 return ListTile(
-                  title: Text('Event ${t.eventId}'),
+                  title:
+                      Text(eventTitleByID[t.eventId] ?? 'Event ${t.eventId}'),
                   subtitle: Text('Status: ${t.status.name}'),
                   trailing: const Icon(Icons.qr_code_2),
                   onTap: () => context.push('/events/${t.eventId}/ticket'),

@@ -4,7 +4,6 @@ import 'package:gdg_events/core/network/graph_ql_failure_mapper.dart';
 import 'package:gdg_events/features/events/domain/entities/event.dart';
 import 'package:gdg_events/features/events/domain/event_status.dart';
 import 'package:gdg_events/features/events/domain/repositories/events_repository.dart';
-import 'package:gql/language.dart';
 import 'package:graphql/client.dart';
 
 class EventsRepositoryImpl implements EventsRepository {
@@ -43,12 +42,19 @@ query UserEvent($id: ID!) {
   @override
   Future<Either<Failure, List<Event>>> listPublished() async {
     try {
-      final result = await _client.query(QueryOptions(document: gql(_queryList)));
+      final result = await _client.query(
+        QueryOptions(
+          document: gql(_queryList),
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
       if (result.hasException) {
         return Left(mapGraphQlException(result.exception!, StackTrace.current));
       }
       final list = result.data?['events'] as List<dynamic>? ?? [];
-      return Right(list.map((e) => _mapEvent(e as Map<String, dynamic>)).toList());
+      return Right(
+        list.map((e) => _mapEvent(e as Map<String, dynamic>)).toList(),
+      );
     } catch (e, st) {
       return Left(mapGraphQlException(e, st));
     }
@@ -58,7 +64,11 @@ query UserEvent($id: ID!) {
   Future<Either<Failure, Event>> getPublished(String id) async {
     try {
       final result = await _client.query(
-        QueryOptions(document: gql(_queryOne), variables: {'id': id}),
+        QueryOptions(
+          document: gql(_queryOne),
+          variables: {'id': id},
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
       );
       if (result.hasException) {
         return Left(mapGraphQlException(result.exception!, StackTrace.current));

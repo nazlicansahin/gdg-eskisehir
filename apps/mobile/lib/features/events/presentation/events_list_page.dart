@@ -19,9 +19,8 @@ class EventsListPage extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) {
-          final msg = e is FailureException
-              ? e.failure.asUserMessage
-              : e.toString();
+          final msg =
+              e is FailureException ? e.failure.asUserMessage : e.toString();
           return Center(child: Text(msg));
         },
         data: (events) {

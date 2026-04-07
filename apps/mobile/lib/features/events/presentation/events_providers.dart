@@ -11,7 +11,8 @@ final eventsListProvider = FutureProvider<List<Event>>((ref) async {
   );
 });
 
-final eventDetailProvider = FutureProvider.family<Event, String>((ref, id) async {
+final eventDetailProvider =
+    FutureProvider.family<Event, String>((ref, id) async {
   final result = await ref.watch(eventsRepositoryProvider).getPublished(id);
   return result.fold(
     (f) => throw FailureException(f),
