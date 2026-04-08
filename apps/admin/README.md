@@ -34,3 +34,24 @@ Every protected action must be gated at:
 1. route level
 2. GraphQL resolver level
 3. use case policy level
+
+## Current implementation status
+
+Implemented organizer panel skeleton pages:
+
+- `/login` (auth placeholder)
+- `/events`
+- `/events/[id]/registrations`
+- `/users`
+- `/checkin`
+
+Data is read from backend GraphQL via `NEXT_PUBLIC_GRAPHQL_URL` (default: `http://localhost:8081/graphql`).
+
+## Run locally
+
+From `apps/admin`:
+
+```bash
+npm install
+npm run dev
+```
