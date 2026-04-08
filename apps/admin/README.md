@@ -37,15 +37,29 @@ Every protected action must be gated at:
 
 ## Current implementation status
 
-Implemented organizer panel skeleton pages:
+Implemented organizer panel pages:
 
-- `/login` (auth placeholder)
+- `/login` (Firebase email/password)
 - `/events`
 - `/events/[id]/registrations`
 - `/users`
 - `/checkin`
 
-Data is read from backend GraphQL via `NEXT_PUBLIC_GRAPHQL_URL` (default: `http://localhost:8081/graphql`).
+Implemented behavior highlights:
+
+- Role-aware route guard (`organizer` or `super_admin`)
+- Logout action (token cookie cleared server-side)
+- Users & Roles:
+  - add role via dropdown (`team_member`, `crew`, `organizer`)
+  - remove role via role chip close icon
+  - prevent self-organizer revoke
+- Check-in:
+  - QR and manual check-in forms
+  - success/error notice banner
+  - GraphQL error code -> user-friendly message mapping
+- Events list:
+  - title search
+  - status filter (`draft/published/cancelled/all`)
 
 ## Run locally
 
@@ -55,3 +69,27 @@ From `apps/admin`:
 npm install
 npm run dev
 ```
+
+## Smoke test checklist
+
+1. Login with an organizer account.
+2. Open `/users`:
+   - add `team_member` to a user
+   - remove `team_member` from role chip close icon
+3. Open `/checkin`:
+   - test QR check-in with valid `eventId` + `qrCode`
+   - test manual check-in with `registrationId`
+4. Open `/events`:
+   - search by title
+   - filter by status
+
+## Local troubleshooting
+
+- `Cannot find module './xxx.js'` in `.next/server/...`:
+  - stop all `next dev` processes
+  - delete `apps/admin/.next`
+  - restart dev server
+- Frequent watcher errors (`EMFILE`):
+  - avoid multiple `next dev` processes for this app
+  - start with polling if needed:
+    - `WATCHPACK_POLLING=true npm run dev`

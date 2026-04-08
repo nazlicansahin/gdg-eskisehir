@@ -1,5 +1,9 @@
-import { listEventRegistrations } from "@/lib/api";
-import { getAuthTokenFromCookie } from "@/lib/auth";
+import {
+  isAuthError,
+  listEventRegistrations,
+  toFriendlyMessage,
+} from "@/lib/api";
+import { clearAuthTokenCookie, getAuthTokenFromCookie } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -45,11 +49,15 @@ export default async function EventRegistrationsPage({ params }: Props) {
       </div>
     );
   } catch (error) {
+    if (isAuthError(error)) {
+      await clearAuthTokenCookie();
+      redirect("/login");
+    }
     return (
       <div className="panel">
         <h1 style={{ marginTop: 0 }}>Registrations</h1>
         <p className="muted">Could not load event registrations.</p>
-        <pre className="muted">{String(error)}</pre>
+        <pre className="muted">{toFriendlyMessage(error, "Registrations query failed")}</pre>
       </div>
     );
   }
