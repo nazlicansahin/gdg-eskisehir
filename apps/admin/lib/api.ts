@@ -90,13 +90,88 @@ export async function listAdminEvents(token: string): Promise<AdminEvent[]> {
       adminEvents {
         id
         title
+        description
         status
+        capacity
         startsAt
+        endsAt
       }
     }
   `;
   const data = await graphQLRequest<{ adminEvents: AdminEvent[] }>(query, {}, token);
   return data.adminEvents;
+}
+
+export async function getAdminEvent(
+  token: string,
+  eventId: string,
+): Promise<AdminEvent | null> {
+  const query = `
+    query AdminEvent($id: ID!) {
+      adminEvent(id: $id) {
+        id
+        title
+        description
+        status
+        capacity
+        startsAt
+        endsAt
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ adminEvent: AdminEvent | null }>(
+    query,
+    { id: eventId },
+    token,
+  );
+  return data.adminEvent;
+}
+
+export async function updateEvent(
+  token: string,
+  input: {
+    id: string;
+    title?: string;
+    description?: string;
+    capacity?: number;
+    startsAt?: string;
+    endsAt?: string;
+  },
+): Promise<void> {
+  const query = `
+    mutation UpdateEvent($input: UpdateEventInput!) {
+      updateEvent(input: $input) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { input }, token);
+}
+
+export async function publishEvent(token: string, eventId: string): Promise<void> {
+  const query = `
+    mutation PublishEvent($eventId: ID!) {
+      publishEvent(eventId: $eventId) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { eventId }, token);
+}
+
+export async function cancelEvent(
+  token: string,
+  eventId: string,
+  reason: string,
+): Promise<void> {
+  const query = `
+    mutation CancelEvent($eventId: ID!, $reason: String!) {
+      cancelEvent(eventId: $eventId, reason: $reason) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { eventId, reason }, token);
 }
 
 export async function listEventRegistrations(
@@ -107,8 +182,9 @@ export async function listEventRegistrations(
     query AdminRegistrations($eventId: ID!) {
       adminRegistrations(eventId: $eventId) {
         id
-        attendeeName
-        attendeeEmail
+        userId
+        eventId
+        qrCodeValue
         status
         checkedInAt
       }
@@ -232,4 +308,90 @@ export async function manualCheckIn(
     manualCheckIn: { id: string; checkedInAt: string | null };
   }>(query, { registrationId }, token);
   return data.manualCheckIn;
+}
+
+export async function createEvent(
+  token: string,
+  input: {
+    title: string;
+    description?: string;
+    capacity: number;
+    startsAt: string;
+    endsAt: string;
+  },
+): Promise<{ id: string; title: string }> {
+  const query = `
+    mutation CreateEvent($input: CreateEventInput!) {
+      createEvent(input: $input) {
+        id
+        title
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ createEvent: { id: string; title: string } }>(
+    query,
+    { input },
+    token,
+  );
+  return data.createEvent;
+}
+
+export async function createSpeaker(
+  token: string,
+  input: { fullName: string; bio?: string; avatarUrl?: string },
+): Promise<{ id: string }> {
+  const query = `
+    mutation CreateSpeaker($input: CreateSpeakerInput!) {
+      createSpeaker(input: $input) {
+        id
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ createSpeaker: { id: string } }>(
+    query,
+    { input },
+    token,
+  );
+  return data.createSpeaker;
+}
+
+export async function createSession(
+  token: string,
+  input: {
+    eventId: string;
+    title: string;
+    description?: string;
+    startsAt: string;
+    endsAt: string;
+    room?: string;
+  },
+): Promise<{ id: string }> {
+  const query = `
+    mutation CreateSession($input: CreateSessionInput!) {
+      createSession(input: $input) {
+        id
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ createSession: { id: string } }>(
+    query,
+    { input },
+    token,
+  );
+  return data.createSession;
+}
+
+export async function attachSpeakerToSession(
+  token: string,
+  sessionId: string,
+  speakerId: string,
+): Promise<void> {
+  const query = `
+    mutation AttachSpeakerToSession($sessionId: ID!, $speakerId: ID!) {
+      attachSpeakerToSession(sessionId: $sessionId, speakerId: $speakerId) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { sessionId, speakerId }, token);
 }

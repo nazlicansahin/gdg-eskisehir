@@ -8,14 +8,18 @@ export type AdminRole =
 export type AdminEvent = {
   id: string;
   title: string;
+  description?: string | null;
   status: "draft" | "published" | "cancelled";
+  capacity: number;
   startsAt: string;
+  endsAt: string;
 };
 
 export type EventRegistration = {
   id: string;
-  attendeeName: string;
-  attendeeEmail: string;
+  userId: string;
+  eventId: string;
+  qrCodeValue: string;
   status: "active" | "cancelled";
   checkedInAt: string | null;
 };

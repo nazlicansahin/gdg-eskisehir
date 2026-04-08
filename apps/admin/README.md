@@ -60,6 +60,10 @@ Implemented behavior highlights:
 - Events list:
   - title search
   - status filter (`draft/published/cancelled/all`)
+  - create event modal (3-step wizard)
+    - step 1: name, description, dates, capacity
+    - step 2: speaker/topic pairs (creates speakers + sessions)
+    - step 3: location, event image URL, free/price
 
 ## Run locally
 
@@ -82,6 +86,7 @@ npm run dev
 4. Open `/events`:
    - search by title
    - filter by status
+   - create a new event via modal wizard
 
 ## Local troubleshooting
 
