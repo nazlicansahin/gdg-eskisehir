@@ -43,13 +43,24 @@ flutterfire configure
 
 ## Pointing at the API
 
-Default API URL is `http://127.0.0.1:8080`. Override when running:
+Default API URL is `http://127.0.0.1:8081`. Override per runtime target:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080
+# iOS Simulator (host localhost is reachable)
+flutter run -d ios --dart-define=API_BASE_URL=http://127.0.0.1:8081
+
+# Android Emulator (host machine is 10.0.2.2)
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8081
+
+# Physical iPhone on same Wi-Fi as your Mac
+flutter run -d <ios-device-id> --dart-define=API_BASE_URL=http://<YOUR_MAC_LAN_IP>:8081
 ```
 
-Use `10.0.2.2` instead of `127.0.0.1` for Android emulator → host machine.
+Notes:
+
+- Use your Mac LAN IP (for example `192.168.1.5`) for physical iOS/Android devices.
+- Ensure backend is running and healthy at `http://localhost:8081/healthz`.
+- If wireless device debugging is unstable, test once with USB to rule out network noise.
 
 ## Navigation structure (target)
 
