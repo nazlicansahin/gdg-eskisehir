@@ -15,6 +15,7 @@
 # Node / Next.js
 **/node_modules/
 **/.next/
+**/.next-dev/
 **/out/
 
 # Go
