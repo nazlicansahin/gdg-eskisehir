@@ -29,7 +29,7 @@ This backend follows:
 
 Prerequisites:
 
-- PostgreSQL running and migrations applied (`internal/infrastructure/postgres/migrations/0001_phase1_core.sql` then `0002_user_roles.sql`)
+- PostgreSQL running and migrations applied (`0001_phase1_core.sql`, `0002_user_roles.sql`, `0003_device_tokens.sql`)
 - Repo root `.env.local` with `BACKEND_DB_DSN`, `BACKEND_FIREBASE_PROJECT_ID`, `BACKEND_FIREBASE_SERVICE_ACCOUNT_JSON_BASE64`
 
 From `backend/`:
@@ -67,6 +67,15 @@ GraphQL:
 After changing `schema/graphql/schema.graphqls`, run `make generate` (gqlgen), then implement new resolvers in `gqlgen/resolver.go`.
 
 Users have **multiple roles** (`user_roles` table): baseline `member` plus optional `team_member`, `crew`, `organizer`, `super_admin`. **`organizer`** may `grantUserRole` / `revokeUserRole` for `team_member` and `crew` only; **`super_admin`** may grant or revoke any role except revoking baseline `member`. **`team_member`**, **`crew`**, **`organizer`**, and **`super_admin`** may perform QR / manual check-in (REST or GraphQL).
+
+## Push notifications (FCM)
+
+Backend sends push notifications via Firebase Cloud Messaging:
+
+- **Instant**: registration confirmed, check-in welcome, event published, event cancelled, schedule updated
+- **Scheduled**: session reminder (15 min before), event reminder (1 day before)
+
+Mobile clients register their device token via `registerDeviceToken(token, platform)` mutation. The notification scheduler runs in the background alongside the HTTP server.
 
 See `docs/backend-testing.md` for curl examples.
 

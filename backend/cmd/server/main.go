@@ -14,6 +14,7 @@ import (
 	"github.com/gdg-eskisehir/events/backend/gqlgen"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/checkin"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/event"
+	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/notification"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/registration"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/schedule"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/session"
@@ -22,6 +23,7 @@ import (
 	"github.com/gdg-eskisehir/events/backend/internal/config"
 	"github.com/gdg-eskisehir/events/backend/internal/gqlserver"
 	cryptosvc "github.com/gdg-eskisehir/events/backend/internal/infrastructure/crypto"
+	"github.com/gdg-eskisehir/events/backend/internal/infrastructure/fcm"
 	"github.com/gdg-eskisehir/events/backend/internal/infrastructure/firebaseauth"
 	"github.com/gdg-eskisehir/events/backend/internal/infrastructure/postgres"
 	"github.com/gdg-eskisehir/events/backend/internal/interface/graphql"
@@ -85,6 +87,13 @@ func main() {
 		log.Fatalf("firebase: %v", err)
 	}
 
+	deviceTokenRepo := postgres.NewDeviceTokenRepository(db)
+	pushSender, err := fcm.NewSender(ctx, cfg.FirebaseProjectID, cfg.FirebaseServiceAccountJSONB64)
+	if err != nil {
+		log.Fatalf("fcm sender: %v", err)
+	}
+	notifier := notification.NewService(deviceTokenRepo, pushSender)
+
 	reg := &httpapi.RegistrationHandlers{
 		Register: registerUC,
 		Ticket:   ticketUC,
@@ -133,6 +142,7 @@ func main() {
 			MyRegs:            myRegs,
 			AdminRegs:         adminRegs,
 			CancelReg:         cancelReg,
+			Notifier:          notifier,
 		},
 	}))
 
@@ -158,6 +168,9 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
+	notifScheduler := notification.NewScheduler(notifier, eventRepo, sessionRepo, regRepo)
+	notifScheduler.Start()
+
 	go func() {
 		log.Printf("listening on %s", cfg.HTTPAddr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -169,6 +182,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
+	notifScheduler.Stop()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(shutdownCtx)

@@ -7,6 +7,7 @@ import (
 	"github.com/gdg-eskisehir/events/backend/internal/application/ports"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/checkin"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/event"
+	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/notification"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/registration"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/schedule"
 	"github.com/gdg-eskisehir/events/backend/internal/application/usecase/session"
@@ -53,6 +54,7 @@ type Resolver struct {
 	MyRegs            *registration.ListMyRegistrationsUseCase
 	AdminRegs         *registration.AdminListRegistrationsUseCase
 	CancelReg         *registration.CancelRegistrationUseCase
+	Notifier          *notification.Service
 }
 
 func gqlAPIError(err error) error {
@@ -194,6 +196,13 @@ func (r *mutationResolver) RegisterForEvent(ctx context.Context, eventID string)
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
+	if r.Notifier != nil {
+		eventTitle := eventID
+		if ev, eErr := r.GetPublic.Execute(ctx, eventID); eErr == nil && ev != nil {
+			eventTitle = ev.Title
+		}
+		go r.Notifier.OnRegistration(context.Background(), actor.UserID, eventTitle)
+	}
 	return &model.RegistrationTicket{
 		ID:          out.RegistrationID,
 		EventID:     out.EventID,
@@ -270,6 +279,9 @@ func (r *mutationResolver) PublishEvent(ctx context.Context, eventID string) (*m
 	if err != nil {
 		return nil, gqlAPIError(err)
 	}
+	if r.Notifier != nil {
+		r.Notifier.OnEventPublished(ctx, r.Registrations, e.ID, e.Title)
+	}
 	return toModelEvent(e), nil
 }
 
@@ -285,6 +297,9 @@ func (r *mutationResolver) CancelEvent(ctx context.Context, eventID string, reas
 	})
 	if err != nil {
 		return nil, gqlAPIError(err)
+	}
+	if r.Notifier != nil {
+		r.Notifier.OnEventCancelled(ctx, r.Registrations, e.ID, e.Title, reason)
 	}
 	return toModelEvent(e), nil
 }
@@ -333,6 +348,13 @@ func (r *mutationResolver) UpdateSession(ctx context.Context, input model.Update
 	})
 	if err != nil {
 		return nil, gqlAPIError(err)
+	}
+	if r.Notifier != nil && s != nil {
+		eventTitle := s.EventID
+		if ev, eErr := r.GetPublic.Execute(ctx, s.EventID); eErr == nil && ev != nil {
+			eventTitle = ev.Title
+		}
+		r.Notifier.OnScheduleUpdated(ctx, r.Registrations, s.EventID, eventTitle)
 	}
 	return r.sessionModel(ctx, s)
 }
@@ -413,6 +435,13 @@ func (r *mutationResolver) CheckInByQR(ctx context.Context, eventID string, qrCo
 	reg, err := r.Registrations.GetRegistrationByID(ctx, out.RegistrationID)
 	if err != nil {
 		return nil, gqlAPIError(err)
+	}
+	if r.Notifier != nil && reg != nil {
+		eventTitle := eventID
+		if ev, eErr := r.GetPublic.Execute(ctx, eventID); eErr == nil && ev != nil {
+			eventTitle = ev.Title
+		}
+		go r.Notifier.OnCheckIn(context.Background(), reg.UserID, eventTitle)
 	}
 	return toModelTicket(reg), nil
 }
@@ -695,6 +724,17 @@ func (r *queryResolver) AdminUsers(ctx context.Context) ([]*model.User, error) {
 		out = append(out, toModelUser(u))
 	}
 	return out, nil
+}
+
+func (r *mutationResolver) RegisterDeviceToken(ctx context.Context, token string, platform string) (bool, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return false, gqlAPIError(err)
+	}
+	if err := r.Notifier.RegisterDeviceToken(ctx, actor.UserID, token, platform); err != nil {
+		return false, gqlAPIError(err)
+	}
+	return true, nil
 }
 
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }

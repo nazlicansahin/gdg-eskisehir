@@ -7,4 +7,17 @@ abstract class EventsRepository {
   Future<Either<Failure, List<Event>>> listPublished();
 
   Future<Either<Failure, Event>> getPublished(String id);
+
+  Future<Either<Failure, Event>> updateEvent({
+    required String id,
+    String? title,
+    String? description,
+    int? capacity,
+    DateTime? startsAt,
+    DateTime? endsAt,
+  });
+
+  Future<Either<Failure, Event>> publishEvent(String id);
+
+  Future<Either<Failure, Event>> cancelEvent(String id, String reason);
 }

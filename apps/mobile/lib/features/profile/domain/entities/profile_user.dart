@@ -23,6 +23,11 @@ class ProfileUser extends Equatable {
     return roles.any(staff.contains);
   }
 
+  bool get canEditEvents {
+    const editors = {'organizer', 'super_admin'};
+    return roles.any(editors.contains);
+  }
+
   @override
   List<Object?> get props => [id, email, displayName, roles];
 }

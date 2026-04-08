@@ -83,6 +83,91 @@ query UserEvent($id: ID!) {
     }
   }
 
+  static const String _mutationUpdate = r'''
+mutation UpdateEvent($input: UpdateEventInput!) {
+  updateEvent(input: $input) {
+    id title description status capacity startsAt endsAt
+  }
+}
+''';
+
+  static const String _mutationPublish = r'''
+mutation PublishEvent($eventId: ID!) {
+  publishEvent(eventId: $eventId) {
+    id title description status capacity startsAt endsAt
+  }
+}
+''';
+
+  static const String _mutationCancel = r'''
+mutation CancelEvent($eventId: ID!, $reason: String!) {
+  cancelEvent(eventId: $eventId, reason: $reason) {
+    id title description status capacity startsAt endsAt
+  }
+}
+''';
+
+  @override
+  Future<Either<Failure, Event>> updateEvent({
+    required String id,
+    String? title,
+    String? description,
+    int? capacity,
+    DateTime? startsAt,
+    DateTime? endsAt,
+  }) async {
+    try {
+      final input = <String, dynamic>{'id': id};
+      if (title != null) input['title'] = title;
+      if (description != null) input['description'] = description;
+      if (capacity != null) input['capacity'] = capacity;
+      if (startsAt != null) input['startsAt'] = startsAt.toUtc().toIso8601String();
+      if (endsAt != null) input['endsAt'] = endsAt.toUtc().toIso8601String();
+      final result = await _client.mutate(
+        MutationOptions(document: gql(_mutationUpdate), variables: {'input': input}),
+      );
+      if (result.hasException) {
+        return Left(mapGraphQlException(result.exception!, StackTrace.current));
+      }
+      return Right(_mapEvent(result.data!['updateEvent'] as Map<String, dynamic>));
+    } catch (e, st) {
+      return Left(mapGraphQlException(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Event>> publishEvent(String id) async {
+    try {
+      final result = await _client.mutate(
+        MutationOptions(document: gql(_mutationPublish), variables: {'eventId': id}),
+      );
+      if (result.hasException) {
+        return Left(mapGraphQlException(result.exception!, StackTrace.current));
+      }
+      return Right(_mapEvent(result.data!['publishEvent'] as Map<String, dynamic>));
+    } catch (e, st) {
+      return Left(mapGraphQlException(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Event>> cancelEvent(String id, String reason) async {
+    try {
+      final result = await _client.mutate(
+        MutationOptions(
+          document: gql(_mutationCancel),
+          variables: {'eventId': id, 'reason': reason},
+        ),
+      );
+      if (result.hasException) {
+        return Left(mapGraphQlException(result.exception!, StackTrace.current));
+      }
+      return Right(_mapEvent(result.data!['cancelEvent'] as Map<String, dynamic>));
+    } catch (e, st) {
+      return Left(mapGraphQlException(e, st));
+    }
+  }
+
   Event _mapEvent(Map<String, dynamic> json) {
     return Event(
       id: json['id'] as String,

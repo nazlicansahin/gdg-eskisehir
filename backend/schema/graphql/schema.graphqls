@@ -162,4 +162,6 @@ type Mutation {
   cancelRegistration(registrationId: ID!, reason: String!): RegistrationTicket!
   grantUserRole(userId: ID!, role: Role!): User!
   revokeUserRole(userId: ID!, role: Role!): User!
+
+  registerDeviceToken(token: String!, platform: String!): Boolean!
 }
