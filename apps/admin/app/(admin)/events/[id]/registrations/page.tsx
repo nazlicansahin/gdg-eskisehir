@@ -114,11 +114,13 @@ export default async function EventRegistrationsPage({ params, searchParams }: P
               <tr key={registration.id}>
                 <td>{registration.id}</td>
                 <td>{registration.userId}</td>
-                <td>{registration.status}</td>
+                <td><span className={`badge badge-${registration.status}`}>{registration.status}</span></td>
                 <td>
-                  {registration.checkedInAt
-                    ? new Date(registration.checkedInAt).toLocaleString()
-                    : "No"}
+                  {registration.checkedInAt ? (
+                    <span className="badge badge-checked">{new Date(registration.checkedInAt).toLocaleString()}</span>
+                  ) : (
+                    <span className="badge badge-not-checked">Not yet</span>
+                  )}
                 </td>
                 <td>{registration.qrCodeValue}</td>
               </tr>

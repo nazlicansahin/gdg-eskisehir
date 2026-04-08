@@ -57,7 +57,7 @@ export default function EventDetailModal({ events, onUpdate }: Props) {
                   {event.title}
                 </button>
               </td>
-              <td>{event.status}</td>
+              <td><span className={`badge badge-${event.status}`}>{event.status}</span></td>
               <td>{new Date(event.startsAt).toLocaleString()}</td>
               <td>
                 <Link href={`/events/${event.id}/registrations`} className="muted">
@@ -82,8 +82,8 @@ export default function EventDetailModal({ events, onUpdate }: Props) {
             <div className="modal-header">
               <div>
                 <h2 style={{ margin: 0 }}>{selected.title}</h2>
-                <p className="muted" style={{ marginTop: 6 }}>
-                  Status: {selected.status}
+                <p style={{ marginTop: 6 }}>
+                  <span className={`badge badge-${selected.status}`}>{selected.status}</span>
                 </p>
               </div>
               <button

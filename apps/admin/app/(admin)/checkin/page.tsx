@@ -2,6 +2,7 @@ import SubmitButton from "@/app/components/submit-button";
 import {
   checkInByQR,
   isAuthError,
+  listAdminEvents,
   manualCheckIn,
   toFriendlyMessage,
 } from "@/lib/api";
@@ -75,12 +76,18 @@ export default async function CheckinPage({ searchParams }: Props) {
   const notice = searchParams?.message;
   const isSuccess = searchParams?.kind === "success";
 
+  let events: { id: string; title: string }[] = [];
+  try {
+    events = await listAdminEvents(token);
+  } catch {
+    // non-blocking; fallback to manual input
+  }
+
   return (
     <div className="panel">
       <h1 style={{ marginTop: 0 }}>Check-in</h1>
       <p className="muted">
-        Staff roles (`team_member`, `crew`, `organizer`, `super_admin`) can check in
-        attendees using QR or manual registration ID.
+        Staff roles can check in attendees using QR code or manual registration ID.
       </p>
       {notice ? (
         <p className={`notice ${isSuccess ? "success" : "error"}`}>
@@ -92,14 +99,25 @@ export default async function CheckinPage({ searchParams }: Props) {
         <form action={submitQrCheckIn} className="panel">
           <h3 style={{ marginTop: 0 }}>Check in by QR</h3>
           <div>
-            <label htmlFor="event-id">Event ID</label>
-            <input
-              id="event-id"
-              name="eventId"
-              className="input"
-              placeholder="event-uuid"
-              required
-            />
+            <label htmlFor="event-id">Event</label>
+            {events.length > 0 ? (
+              <select id="event-id" name="eventId" className="input" required>
+                <option value="">Select event</option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id="event-id"
+                name="eventId"
+                className="input"
+                placeholder="event-uuid"
+                required
+              />
+            )}
           </div>
           <div>
             <label htmlFor="qr">QR code value</label>

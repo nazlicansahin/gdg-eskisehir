@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/providers.dart';
+import 'package:gdg_events/app/theme.dart';
 import 'package:gdg_events/core/errors/failures.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,70 +31,111 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'GDG Eskişehir',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in or create an account (email / password).',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment<bool>(
-                      value: false,
-                      label: Text('Sign in'),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // GDG Logo text
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('G',
+                          style: TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w700,
+                              color: GdgTheme.googleBlue)),
+                      Text('D',
+                          style: TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w700,
+                              color: GdgTheme.googleRed)),
+                      Text('G',
+                          style: TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w700,
+                              color: GdgTheme.googleYellow)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Eskisehir',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
                     ),
-                    ButtonSegment<bool>(
-                      value: true,
-                      label: Text('Create account'),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Community Events',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
                     ),
-                  ],
-                  selected: {_registerMode},
-                  onSelectionChanged: (s) =>
-                      setState(() => _registerMode = s.first),
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _email,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.email],
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _password,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  autofillHints: const [AutofillHints.password],
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_registerMode ? 'Create account' : 'Sign in'),
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 36),
+
+                  SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment<bool>(
+                        value: false,
+                        label: Text('Sign in'),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        label: Text('Create account'),
+                      ),
+                    ],
+                    selected: {_registerMode},
+                    onSelectionChanged: (s) =>
+                        setState(() => _registerMode = s.first),
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _email,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    autofillHints: const [AutofillHints.email],
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _password,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(Icons.lock_outline),
+                    ),
+                    obscureText: true,
+                    autofillHints: const [AutofillHints.password],
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _loading ? null : _submit,
+                      child: _loading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(
+                              _registerMode ? 'Create account' : 'Sign in'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

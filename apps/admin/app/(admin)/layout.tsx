@@ -1,14 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clearAuthTokenCookie, getAuthTokenFromCookie } from "@/lib/auth";
-import { getMyRoles, isAuthError } from "@/lib/api";
+import { getMe, getMyRoles, isAuthError } from "@/lib/api";
+import SidebarNav from "../components/sidebar-nav";
 import SubmitButton from "../components/submit-button";
-
-const links = [
-  { href: "/events", label: "Events" },
-  { href: "/checkin", label: "Check-in" },
-  { href: "/users", label: "Users & Roles" },
-];
 
 export default async function AdminLayout({
   children,
@@ -25,8 +19,11 @@ export default async function AdminLayout({
   }
 
   let roles: string[];
+  let email = "";
   try {
-    roles = await getMyRoles(token);
+    const me = await getMe(token);
+    roles = me.roles;
+    email = me.email;
   } catch (error) {
     if (isAuthError(error)) {
       await clearAuthTokenCookie();
@@ -40,23 +37,27 @@ export default async function AdminLayout({
   }
 
   return (
-    <main className="container" style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 16 }}>
-      <aside className="panel" style={{ height: "fit-content" }}>
-        <h3 style={{ marginTop: 0 }}>Organizer Panel</h3>
-        <nav style={{ display: "grid", gap: 8 }}>
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className="muted">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <form action={logout} style={{ marginTop: 16 }}>
-          <SubmitButton
-            idleLabel="Log out"
-            pendingLabel="Logging out..."
-            className="button secondary"
-          />
-        </form>
+    <main className="container admin-grid">
+      <aside className="panel sidebar">
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.3 }}>
+            <span style={{ color: "#4285f4" }}>G</span>
+            <span style={{ color: "#ea4335" }}>D</span>
+            <span style={{ color: "#fbbc04" }}>G</span>
+          </div>
+          <span style={{ fontSize: 12, color: "#5f6368", fontWeight: 500 }}>Organizer Panel</span>
+        </div>
+        <SidebarNav />
+        <div className="sidebar-footer">
+          <p className="sidebar-email">{email}</p>
+          <form action={logout}>
+            <SubmitButton
+              idleLabel="Log out"
+              pendingLabel="Logging out..."
+              className="button secondary"
+            />
+          </form>
+        </div>
       </aside>
       <section>{children}</section>
     </main>
