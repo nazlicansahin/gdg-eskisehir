@@ -18,12 +18,13 @@ export class AdminApiError extends Error {
   }
 }
 
+/** True when the session/token is invalid or expired — cookie should be cleared. */
 export function isAuthError(error: unknown): boolean {
   return (
-    error instanceof AdminApiError &&
-    (error.code === "UNAUTHENTICATED" || error.code === "FORBIDDEN")
+    error instanceof AdminApiError && error.code === "UNAUTHENTICATED"
   );
 }
+
 
 export function toFriendlyMessage(error: unknown, fallback: string): string {
   if (!(error instanceof AdminApiError)) {
@@ -394,4 +395,151 @@ export async function attachSpeakerToSession(
     }
   `;
   await graphQLRequest(query, { sessionId, speakerId }, token);
+}
+
+export type ScheduleSessionRow = {
+  id: string;
+  eventId: string;
+  title: string;
+  description: string | null;
+  startsAt: string;
+  endsAt: string;
+  room: string | null;
+  speakers: {
+    id: string;
+    fullName: string;
+    bio: string | null;
+    avatarUrl: string | null;
+  }[];
+};
+
+export async function listEventSchedule(
+  token: string,
+  eventId: string,
+): Promise<ScheduleSessionRow[]> {
+  const query = `
+    query EventSchedule($eventId: ID!) {
+      eventSchedule(eventId: $eventId) {
+        id
+        eventId
+        title
+        description
+        startsAt
+        endsAt
+        room
+        speakers {
+          id
+          fullName
+          bio
+          avatarUrl
+        }
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ eventSchedule: ScheduleSessionRow[] }>(
+    query,
+    { eventId },
+    token,
+  );
+  return data.eventSchedule ?? [];
+}
+
+export async function updateSession(
+  token: string,
+  input: {
+    id: string;
+    title?: string;
+    description?: string;
+    startsAt?: string;
+    endsAt?: string;
+    room?: string;
+  },
+): Promise<void> {
+  const query = `
+    mutation UpdateSession($input: UpdateSessionInput!) {
+      updateSession(input: $input) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { input }, token);
+}
+
+export async function updateSpeaker(
+  token: string,
+  input: {
+    id: string;
+    fullName?: string;
+    bio?: string;
+    avatarUrl?: string;
+  },
+): Promise<void> {
+  const query = `
+    mutation UpdateSpeaker($input: UpdateSpeakerInput!) {
+      updateSpeaker(input: $input) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { input }, token);
+}
+
+export type SponsorItem = {
+  id: string;
+  eventId: string | null;
+  name: string;
+  logoUrl: string | null;
+  websiteUrl: string | null;
+  tier: string;
+};
+
+export async function listSponsors(
+  token: string,
+  eventId?: string,
+): Promise<SponsorItem[]> {
+  const query = `
+    query Sponsors($eventId: ID) {
+      sponsors(eventId: $eventId) {
+        id eventId name logoUrl websiteUrl tier
+      }
+    }
+  `;
+  const data = await graphQLRequest<{ sponsors: SponsorItem[] }>(
+    query,
+    eventId ? { eventId } : {},
+    token,
+  );
+  return data.sponsors;
+}
+
+export async function createSponsor2(
+  token: string,
+  input: {
+    eventId?: string;
+    name: string;
+    logoUrl?: string;
+    websiteUrl?: string;
+    tier: string;
+  },
+): Promise<void> {
+  const query = `
+    mutation CreateSponsor($input: CreateSponsorInput!) {
+      createSponsor(input: $input) {
+        id
+      }
+    }
+  `;
+  await graphQLRequest(query, { input }, token);
+}
+
+export async function deleteSponsor(
+  token: string,
+  id: string,
+): Promise<void> {
+  const query = `
+    mutation DeleteSponsor($id: ID!) {
+      deleteSponsor(id: $id)
+    }
+  `;
+  await graphQLRequest(query, { id }, token);
 }

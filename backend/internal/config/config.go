@@ -59,7 +59,8 @@ func loadEnvFiles() error {
 		if _, err := os.Stat(abs); err != nil {
 			continue
 		}
-		_ = godotenv.Load(abs)
+		// Overload so .env.local wins over stale shell exports (Load does not override existing env).
+		_ = godotenv.Overload(abs)
 	}
 	return nil
 }

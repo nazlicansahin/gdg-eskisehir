@@ -127,6 +127,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     onTap: () => context.push('/check-in'),
                   ),
                 ),
+                const SizedBox(height: 8),
+              ],
+              if (profile.canEditEvents) ...[
+                Card(
+                  child: ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: GdgTheme.googleYellow.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.campaign_rounded,
+                          color: GdgTheme.googleYellow, size: 20),
+                    ),
+                    title: const Text('Send announcement',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle:
+                        const Text('Notify attendees about updates'),
+                    trailing:
+                        const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () => context.push('/announcements/new'),
+                  ),
+                ),
                 const SizedBox(height: 16),
               ],
 

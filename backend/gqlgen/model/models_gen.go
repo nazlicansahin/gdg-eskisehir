@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+type Announcement struct {
+	ID        string    `json:"id"`
+	EventID   *string   `json:"eventId,omitempty"`
+	Title     string    `json:"title"`
+	Body      string    `json:"body"`
+	CreatedBy string    `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type CreateAnnouncementInput struct {
+	EventID *string `json:"eventId,omitempty"`
+	Title   string  `json:"title"`
+	Body    string  `json:"body"`
+}
+
 type CreateEventInput struct {
 	Title       string    `json:"title"`
 	Description *string   `json:"description,omitempty"`
@@ -30,6 +45,14 @@ type CreateSpeakerInput struct {
 	FullName  string  `json:"fullName"`
 	Bio       *string `json:"bio,omitempty"`
 	AvatarURL *string `json:"avatarUrl,omitempty"`
+}
+
+type CreateSponsorInput struct {
+	EventID    *string `json:"eventId,omitempty"`
+	Name       string  `json:"name"`
+	LogoURL    *string `json:"logoUrl,omitempty"`
+	WebsiteURL *string `json:"websiteUrl,omitempty"`
+	Tier       string  `json:"tier"`
 }
 
 type Event struct {
@@ -81,6 +104,15 @@ type Speaker struct {
 
 type SpeakerFilterInput struct {
 	Query *string `json:"query,omitempty"`
+}
+
+type Sponsor struct {
+	ID         string  `json:"id"`
+	EventID    *string `json:"eventId,omitempty"`
+	Name       string  `json:"name"`
+	LogoURL    *string `json:"logoUrl,omitempty"`
+	WebsiteURL *string `json:"websiteUrl,omitempty"`
+	Tier       string  `json:"tier"`
 }
 
 type UpdateEventInput struct {

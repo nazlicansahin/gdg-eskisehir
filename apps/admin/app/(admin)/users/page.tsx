@@ -13,6 +13,14 @@ import { revalidatePath } from "next/cache";
 
 const manageableRoles = ["team_member", "crew", "organizer"] as const;
 
+/** Roles that may appear in the grant dropdown (organizers cannot grant organizer). */
+function rolesInGrantDropdown(actorRoles: string[]): (typeof manageableRoles)[number][] {
+  if (actorRoles.includes("super_admin")) {
+    return ["team_member", "crew", "organizer"];
+  }
+  return ["team_member", "crew"];
+}
+
 type Props = {
   searchParams?: {
     message?: string;
@@ -45,6 +53,14 @@ export default async function UsersPage({ searchParams }: Props) {
     let message = "";
     try {
       if (action === "grant") {
+        const actor = await getMe(authToken);
+        const allowedGrant = new Set(rolesInGrantDropdown(actor.roles));
+        if (!allowedGrant.has(role)) {
+          revalidatePath("/users");
+          redirect(
+            `/users?kind=error&message=${encodeURIComponent("You cannot assign this role.")}`,
+          );
+        }
         await grantUserRole(authToken, userId, role);
         message = `${role} granted`;
       } else if (action === "revoke") {
@@ -77,6 +93,7 @@ export default async function UsersPage({ searchParams }: Props) {
   try {
     const users = await listAdminUsers(token);
     const me = await getMe(token);
+    const grantDropdownRoles = rolesInGrantDropdown(me.roles);
     const notice = searchParams?.message;
     const isSuccess = searchParams?.kind === "success";
     const emailFilter = (searchParams?.email ?? "").trim().toLowerCase();
@@ -163,7 +180,7 @@ export default async function UsersPage({ searchParams }: Props) {
                 </td>
                 <td>
                   {(() => {
-                    const addableRoles = manageableRoles.filter(
+                    const addableRoles = grantDropdownRoles.filter(
                       (role) => !user.roles.includes(role),
                     );
                     return (
@@ -172,19 +189,23 @@ export default async function UsersPage({ searchParams }: Props) {
                     <select
                       name="role"
                       className="input"
-                      defaultValue={addableRoles[0] ?? manageableRoles[0]}
+                      defaultValue={addableRoles[0] ?? ""}
                       disabled={addableRoles.length === 0}
                       title={
                         addableRoles.length === 0
-                          ? "All manageable roles are already assigned"
+                          ? "No roles you can assign remain for this user"
                           : "Select role to add"
                       }
                     >
-                      {manageableRoles.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
+                      {addableRoles.length === 0 ? (
+                        <option value="">—</option>
+                      ) : (
+                        addableRoles.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))
+                      )}
                     </select>
                     <SubmitButton
                       name="action"
@@ -195,7 +216,7 @@ export default async function UsersPage({ searchParams }: Props) {
                       disabled={addableRoles.length === 0}
                       title={
                         addableRoles.length === 0
-                          ? "All manageable roles are already assigned"
+                          ? "No roles you can assign remain for this user"
                           : "Add selected role"
                       }
                     />

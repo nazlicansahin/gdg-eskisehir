@@ -8,6 +8,7 @@ const links = [
   { href: "/events", label: "Events" },
   { href: "/checkin", label: "Check-in" },
   { href: "/users", label: "Users & Roles" },
+  { href: "/sponsors", label: "Sponsors" },
 ];
 
 export default function SidebarNav() {

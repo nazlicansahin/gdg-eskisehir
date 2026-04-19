@@ -78,7 +78,7 @@ func (s *Service) registeredUserIDs(ctx context.Context, regRepo ports.Registrat
 func (s *Service) notifyAllUsers(ctx context.Context, title, body string, data map[string]string) {
 	// For "all users" notifications, we send to all device tokens.
 	// A more scalable approach would use FCM topics.
-	tokens, err := s.deviceTokens.ListByUserIDs(ctx, []string{})
+	tokens, err := s.deviceTokens.ListAll(ctx)
 	if err != nil || len(tokens) == 0 {
 		return
 	}

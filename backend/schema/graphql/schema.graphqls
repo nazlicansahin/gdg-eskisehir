@@ -64,6 +64,38 @@ type RegistrationTicket {
   checkedInAt: Time
 }
 
+type Announcement {
+  id: ID!
+  eventId: ID
+  title: String!
+  body: String!
+  createdBy: ID!
+  createdAt: Time!
+}
+
+input CreateAnnouncementInput {
+  eventId: ID
+  title: String!
+  body: String!
+}
+
+type Sponsor {
+  id: ID!
+  eventId: ID
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  tier: String!
+}
+
+input CreateSponsorInput {
+  eventId: ID
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  tier: String!
+}
+
 input EventFilterInput {
   status: EventStatus
 }
@@ -138,6 +170,9 @@ type Query {
   adminEvent(id: ID!): Event
   adminRegistrations(eventId: ID!): [RegistrationTicket!]!
   adminUsers: [User!]!
+
+  announcements(eventId: ID): [Announcement!]!
+  sponsors(eventId: ID): [Sponsor!]!
 }
 
 type Mutation {
@@ -164,4 +199,8 @@ type Mutation {
   revokeUserRole(userId: ID!, role: Role!): User!
 
   registerDeviceToken(token: String!, platform: String!): Boolean!
+
+  createAnnouncement(input: CreateAnnouncementInput!): Announcement!
+  createSponsor(input: CreateSponsorInput!): Sponsor!
+  deleteSponsor(id: ID!): Boolean!
 }

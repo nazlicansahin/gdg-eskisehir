@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/theme.dart';
+import 'package:gdg_events/core/event/event_description.dart';
 import 'package:gdg_events/core/errors/failure_exception.dart';
 import 'package:gdg_events/core/errors/failures.dart';
 import 'package:gdg_events/features/events/domain/entities/event.dart';
@@ -99,9 +100,12 @@ class EventsListPage extends ConsumerWidget {
               ref.invalidate(eventsListProvider);
             },
             child: ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 24),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
               itemCount: events.length,
-              itemBuilder: (context, i) => _EventCard(event: events[i]),
+              itemBuilder: (context, i) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _EventCard(event: events[i]),
+              ),
             ),
           );
         },
@@ -120,60 +124,98 @@ class _EventCard extends StatelessWidget {
     final df = DateFormat.yMMMd().add_Hm();
     final theme = Theme.of(context);
     final isUpcoming = event.startsAt.isAfter(DateTime.now());
+    final cover = eventCoverImageUrl(event.description);
+    const imgHeight = 152.0;
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
       child: InkWell(
         onTap: () => context.push('/events/${event.id}'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: _accentColor(event.status).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Center(
-                  child: Text(
-                    DateFormat.d().format(event.startsAt.toLocal()),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: _accentColor(event.status),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: imgHeight,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (cover != null)
+                    Image.network(
+                      cover,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _CardImageFallback(
+                        event: event,
+                        accent: _accentColor(event.status),
+                      ),
+                    )
+                  else
+                    _CardImageFallback(
+                      event: event,
+                      accent: _accentColor(event.status),
                     ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: _StatusChip(status: event.status, isUpcoming: isUpcoming),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      df.format(event.startsAt.toLocal()),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today_outlined,
+                          size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          df.format(event.startsAt.toLocal()),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.people_outline_rounded,
+                          size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Capacity ${event.capacity}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              _StatusChip(status: event.status, isUpcoming: isUpcoming),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -186,6 +228,39 @@ class _EventCard extends StatelessWidget {
       };
 }
 
+class _CardImageFallback extends StatelessWidget {
+  const _CardImageFallback({required this.event, required this.accent});
+  final Event event;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            accent.withValues(alpha: 0.35),
+            GdgTheme.googleBlue.withValues(alpha: 0.55),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          DateFormat.d().format(event.startsAt.toLocal()),
+          style: TextStyle(
+            fontSize: 42,
+            fontWeight: FontWeight.w800,
+            color: Colors.white.withValues(alpha: 0.95),
+            shadows: const [Shadow(blurRadius: 12, color: Colors.black26)],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.status, this.isUpcoming = false});
 
@@ -196,16 +271,24 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, bg, fg) = switch (status) {
       EventStatus.published => isUpcoming
-          ? ('Upcoming', GdgTheme.googleGreen.withOpacity(0.12), GdgTheme.googleGreen)
-          : ('Live', GdgTheme.googleBlue.withOpacity(0.12), GdgTheme.googleBlue),
+          ? (
+              'Upcoming',
+              GdgTheme.googleGreen.withValues(alpha: 0.12),
+              GdgTheme.googleGreen,
+            )
+          : (
+              'Live',
+              GdgTheme.googleBlue.withValues(alpha: 0.12),
+              GdgTheme.googleBlue,
+            ),
       EventStatus.cancelled => (
           'Cancelled',
-          GdgTheme.googleRed.withOpacity(0.12),
+          GdgTheme.googleRed.withValues(alpha: 0.12),
           GdgTheme.googleRed,
         ),
       EventStatus.draft => (
           'Draft',
-          GdgTheme.googleYellow.withOpacity(0.12),
+          GdgTheme.googleYellow.withValues(alpha: 0.12),
           const Color(0xFFE37400),
         ),
     };

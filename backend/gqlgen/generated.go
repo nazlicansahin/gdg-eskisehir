@@ -47,6 +47,15 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Announcement struct {
+		Body      func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		EventID   func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Title     func(childComplexity int) int
+	}
+
 	Event struct {
 		Capacity    func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -62,12 +71,16 @@ type ComplexityRoot struct {
 		CancelEvent            func(childComplexity int, eventID string, reason string) int
 		CancelRegistration     func(childComplexity int, registrationID string, reason string) int
 		CheckInByQR            func(childComplexity int, eventID string, qrCode string) int
+		CreateAnnouncement     func(childComplexity int, input model.CreateAnnouncementInput) int
 		CreateEvent            func(childComplexity int, input model.CreateEventInput) int
 		CreateSession          func(childComplexity int, input model.CreateSessionInput) int
 		CreateSpeaker          func(childComplexity int, input model.CreateSpeakerInput) int
+		CreateSponsor          func(childComplexity int, input model.CreateSponsorInput) int
+		DeleteSponsor          func(childComplexity int, id string) int
 		GrantUserRole          func(childComplexity int, userID string, role model.Role) int
 		ManualCheckIn          func(childComplexity int, registrationID string) int
 		PublishEvent           func(childComplexity int, eventID string) int
+		RegisterDeviceToken    func(childComplexity int, token string, platform string) int
 		RegisterForEvent       func(childComplexity int, eventID string) int
 		RevokeUserRole         func(childComplexity int, userID string, role model.Role) int
 		UpdateEvent            func(childComplexity int, input model.UpdateEventInput) int
@@ -81,6 +94,7 @@ type ComplexityRoot struct {
 		AdminEvents        func(childComplexity int, filter *model.EventFilterInput) int
 		AdminRegistrations func(childComplexity int, eventID string) int
 		AdminUsers         func(childComplexity int) int
+		Announcements      func(childComplexity int, eventID *string) int
 		Event              func(childComplexity int, id string) int
 		EventSchedule      func(childComplexity int, eventID string) int
 		Events             func(childComplexity int, filter *model.EventFilterInput) int
@@ -89,6 +103,7 @@ type ComplexityRoot struct {
 		MyTicket           func(childComplexity int, eventID string) int
 		Speaker            func(childComplexity int, id string) int
 		Speakers           func(childComplexity int, filter *model.SpeakerFilterInput) int
+		Sponsors           func(childComplexity int, eventID *string) int
 	}
 
 	RegistrationTicket struct {
@@ -118,6 +133,15 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 	}
 
+	Sponsor struct {
+		EventID    func(childComplexity int) int
+		ID         func(childComplexity int) int
+		LogoURL    func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Tier       func(childComplexity int) int
+		WebsiteURL func(childComplexity int) int
+	}
+
 	User struct {
 		DisplayName func(childComplexity int) int
 		Email       func(childComplexity int) int
@@ -143,6 +167,10 @@ type MutationResolver interface {
 	CancelRegistration(ctx context.Context, registrationID string, reason string) (*model.RegistrationTicket, error)
 	GrantUserRole(ctx context.Context, userID string, role model.Role) (*model.User, error)
 	RevokeUserRole(ctx context.Context, userID string, role model.Role) (*model.User, error)
+	RegisterDeviceToken(ctx context.Context, token string, platform string) (bool, error)
+	CreateAnnouncement(ctx context.Context, input model.CreateAnnouncementInput) (*model.Announcement, error)
+	CreateSponsor(ctx context.Context, input model.CreateSponsorInput) (*model.Sponsor, error)
+	DeleteSponsor(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -157,6 +185,8 @@ type QueryResolver interface {
 	AdminEvent(ctx context.Context, id string) (*model.Event, error)
 	AdminRegistrations(ctx context.Context, eventID string) ([]*model.RegistrationTicket, error)
 	AdminUsers(ctx context.Context) ([]*model.User, error)
+	Announcements(ctx context.Context, eventID *string) ([]*model.Announcement, error)
+	Sponsors(ctx context.Context, eventID *string) ([]*model.Sponsor, error)
 }
 
 type executableSchema struct {
@@ -177,6 +207,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Announcement.body":
+		if e.complexity.Announcement.Body == nil {
+			break
+		}
+
+		return e.complexity.Announcement.Body(childComplexity), true
+
+	case "Announcement.createdAt":
+		if e.complexity.Announcement.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Announcement.CreatedAt(childComplexity), true
+
+	case "Announcement.createdBy":
+		if e.complexity.Announcement.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Announcement.CreatedBy(childComplexity), true
+
+	case "Announcement.eventId":
+		if e.complexity.Announcement.EventID == nil {
+			break
+		}
+
+		return e.complexity.Announcement.EventID(childComplexity), true
+
+	case "Announcement.id":
+		if e.complexity.Announcement.ID == nil {
+			break
+		}
+
+		return e.complexity.Announcement.ID(childComplexity), true
+
+	case "Announcement.title":
+		if e.complexity.Announcement.Title == nil {
+			break
+		}
+
+		return e.complexity.Announcement.Title(childComplexity), true
 
 	case "Event.capacity":
 		if e.complexity.Event.Capacity == nil {
@@ -275,6 +347,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CheckInByQR(childComplexity, args["eventId"].(string), args["qrCode"].(string)), true
 
+	case "Mutation.createAnnouncement":
+		if e.complexity.Mutation.CreateAnnouncement == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAnnouncement_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAnnouncement(childComplexity, args["input"].(model.CreateAnnouncementInput)), true
+
 	case "Mutation.createEvent":
 		if e.complexity.Mutation.CreateEvent == nil {
 			break
@@ -311,6 +395,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateSpeaker(childComplexity, args["input"].(model.CreateSpeakerInput)), true
 
+	case "Mutation.createSponsor":
+		if e.complexity.Mutation.CreateSponsor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createSponsor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateSponsor(childComplexity, args["input"].(model.CreateSponsorInput)), true
+
+	case "Mutation.deleteSponsor":
+		if e.complexity.Mutation.DeleteSponsor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSponsor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSponsor(childComplexity, args["id"].(string)), true
+
 	case "Mutation.grantUserRole":
 		if e.complexity.Mutation.GrantUserRole == nil {
 			break
@@ -346,6 +454,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PublishEvent(childComplexity, args["eventId"].(string)), true
+
+	case "Mutation.registerDeviceToken":
+		if e.complexity.Mutation.RegisterDeviceToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerDeviceToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterDeviceToken(childComplexity, args["token"].(string), args["platform"].(string)), true
 
 	case "Mutation.registerForEvent":
 		if e.complexity.Mutation.RegisterForEvent == nil {
@@ -462,6 +582,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AdminUsers(childComplexity), true
 
+	case "Query.announcements":
+		if e.complexity.Query.Announcements == nil {
+			break
+		}
+
+		args, err := ec.field_Query_announcements_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Announcements(childComplexity, args["eventId"].(*string)), true
+
 	case "Query.event":
 		if e.complexity.Query.Event == nil {
 			break
@@ -547,6 +679,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Speakers(childComplexity, args["filter"].(*model.SpeakerFilterInput)), true
+
+	case "Query.sponsors":
+		if e.complexity.Query.Sponsors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sponsors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Sponsors(childComplexity, args["eventId"].(*string)), true
 
 	case "RegistrationTicket.checkedInAt":
 		if e.complexity.RegistrationTicket.CheckedInAt == nil {
@@ -674,6 +818,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Speaker.ID(childComplexity), true
 
+	case "Sponsor.eventId":
+		if e.complexity.Sponsor.EventID == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.EventID(childComplexity), true
+
+	case "Sponsor.id":
+		if e.complexity.Sponsor.ID == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.ID(childComplexity), true
+
+	case "Sponsor.logoUrl":
+		if e.complexity.Sponsor.LogoURL == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.LogoURL(childComplexity), true
+
+	case "Sponsor.name":
+		if e.complexity.Sponsor.Name == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.Name(childComplexity), true
+
+	case "Sponsor.tier":
+		if e.complexity.Sponsor.Tier == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.Tier(childComplexity), true
+
+	case "Sponsor.websiteUrl":
+		if e.complexity.Sponsor.WebsiteURL == nil {
+			break
+		}
+
+		return e.complexity.Sponsor.WebsiteURL(childComplexity), true
+
 	case "User.displayName":
 		if e.complexity.User.DisplayName == nil {
 			break
@@ -710,9 +896,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateAnnouncementInput,
 		ec.unmarshalInputCreateEventInput,
 		ec.unmarshalInputCreateSessionInput,
 		ec.unmarshalInputCreateSpeakerInput,
+		ec.unmarshalInputCreateSponsorInput,
 		ec.unmarshalInputEventFilterInput,
 		ec.unmarshalInputSpeakerFilterInput,
 		ec.unmarshalInputUpdateEventInput,
@@ -882,6 +1070,38 @@ type RegistrationTicket {
   checkedInAt: Time
 }
 
+type Announcement {
+  id: ID!
+  eventId: ID
+  title: String!
+  body: String!
+  createdBy: ID!
+  createdAt: Time!
+}
+
+input CreateAnnouncementInput {
+  eventId: ID
+  title: String!
+  body: String!
+}
+
+type Sponsor {
+  id: ID!
+  eventId: ID
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  tier: String!
+}
+
+input CreateSponsorInput {
+  eventId: ID
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  tier: String!
+}
+
 input EventFilterInput {
   status: EventStatus
 }
@@ -956,6 +1176,9 @@ type Query {
   adminEvent(id: ID!): Event
   adminRegistrations(eventId: ID!): [RegistrationTicket!]!
   adminUsers: [User!]!
+
+  announcements(eventId: ID): [Announcement!]!
+  sponsors(eventId: ID): [Sponsor!]!
 }
 
 type Mutation {
@@ -980,6 +1203,12 @@ type Mutation {
   cancelRegistration(registrationId: ID!, reason: String!): RegistrationTicket!
   grantUserRole(userId: ID!, role: Role!): User!
   revokeUserRole(userId: ID!, role: Role!): User!
+
+  registerDeviceToken(token: String!, platform: String!): Boolean!
+
+  createAnnouncement(input: CreateAnnouncementInput!): Announcement!
+  createSponsor(input: CreateSponsorInput!): Sponsor!
+  deleteSponsor(id: ID!): Boolean!
 }
 `, BuiltIn: false},
 }
@@ -1085,6 +1314,21 @@ func (ec *executionContext) field_Mutation_checkInByQR_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createAnnouncement_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreateAnnouncementInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateAnnouncementInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateAnnouncementInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1127,6 +1371,36 @@ func (ec *executionContext) field_Mutation_createSpeaker_args(ctx context.Contex
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createSponsor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreateSponsorInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateSponsorInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateSponsorInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteSponsor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1181,6 +1455,30 @@ func (ec *executionContext) field_Mutation_publishEvent_args(ctx context.Context
 		}
 	}
 	args["eventId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerDeviceToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["token"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["platform"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platform"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["platform"] = arg1
 	return args, nil
 }
 
@@ -1343,6 +1641,21 @@ func (ec *executionContext) field_Query_adminRegistrations_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_announcements_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventId"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_eventSchedule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1433,6 +1746,21 @@ func (ec *executionContext) field_Query_speakers_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_sponsors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventId"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1470,6 +1798,267 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Announcement_id(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Announcement_eventId(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_eventId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EventID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_eventId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Announcement_title(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Announcement_body(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_body(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Body, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_body(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Announcement_createdBy(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_createdBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_createdBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Announcement_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Announcement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Announcement_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Announcement_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Announcement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Event_id(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Event_id(ctx, field)
@@ -2880,6 +3469,254 @@ func (ec *executionContext) fieldContext_Mutation_revokeUserRole(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_registerDeviceToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_registerDeviceToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterDeviceToken(rctx, fc.Args["token"].(string), fc.Args["platform"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_registerDeviceToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_registerDeviceToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createAnnouncement(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createAnnouncement(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAnnouncement(rctx, fc.Args["input"].(model.CreateAnnouncementInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Announcement)
+	fc.Result = res
+	return ec.marshalNAnnouncement2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncement(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAnnouncement(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Announcement_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_Announcement_eventId(ctx, field)
+			case "title":
+				return ec.fieldContext_Announcement_title(ctx, field)
+			case "body":
+				return ec.fieldContext_Announcement_body(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Announcement_createdBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Announcement_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Announcement", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAnnouncement_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createSponsor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createSponsor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateSponsor(rctx, fc.Args["input"].(model.CreateSponsorInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Sponsor)
+	fc.Result = res
+	return ec.marshalNSponsor2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createSponsor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Sponsor_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_Sponsor_eventId(ctx, field)
+			case "name":
+				return ec.fieldContext_Sponsor_name(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Sponsor_logoUrl(ctx, field)
+			case "websiteUrl":
+				return ec.fieldContext_Sponsor_websiteUrl(ctx, field)
+			case "tier":
+				return ec.fieldContext_Sponsor_tier(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Sponsor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createSponsor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteSponsor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteSponsor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSponsor(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteSponsor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteSponsor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_me(ctx, field)
 	if err != nil {
@@ -3655,6 +4492,144 @@ func (ec *executionContext) fieldContext_Query_adminUsers(_ context.Context, fie
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_announcements(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_announcements(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Announcements(rctx, fc.Args["eventId"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Announcement)
+	fc.Result = res
+	return ec.marshalNAnnouncement2ᚕᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncementᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_announcements(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Announcement_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_Announcement_eventId(ctx, field)
+			case "title":
+				return ec.fieldContext_Announcement_title(ctx, field)
+			case "body":
+				return ec.fieldContext_Announcement_body(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Announcement_createdBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Announcement_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Announcement", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_announcements_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sponsors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sponsors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Sponsors(rctx, fc.Args["eventId"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Sponsor)
+	fc.Result = res
+	return ec.marshalNSponsor2ᚕᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sponsors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Sponsor_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_Sponsor_eventId(ctx, field)
+			case "name":
+				return ec.fieldContext_Sponsor_name(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Sponsor_logoUrl(ctx, field)
+			case "websiteUrl":
+				return ec.fieldContext_Sponsor_websiteUrl(ctx, field)
+			case "tier":
+				return ec.fieldContext_Sponsor_tier(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Sponsor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sponsors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4565,6 +5540,261 @@ func (ec *executionContext) _Speaker_avatarUrl(ctx context.Context, field graphq
 func (ec *executionContext) fieldContext_Speaker_avatarUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Speaker",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_id(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_eventId(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_eventId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EventID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_eventId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_name(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_logoUrl(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_logoUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_logoUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_websiteUrl(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_websiteUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebsiteURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_websiteUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sponsor_tier(ctx context.Context, field graphql.CollectedField, obj *model.Sponsor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sponsor_tier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sponsor_tier(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sponsor",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6524,6 +7754,47 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateAnnouncementInput(ctx context.Context, obj interface{}) (model.CreateAnnouncementInput, error) {
+	var it model.CreateAnnouncementInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"eventId", "title", "body"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "eventId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EventID = data
+		case "title":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "body":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("body"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Body = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, obj interface{}) (model.CreateEventInput, error) {
 	var it model.CreateEventInput
 	asMap := map[string]interface{}{}
@@ -6676,6 +7947,61 @@ func (ec *executionContext) unmarshalInputCreateSpeakerInput(ctx context.Context
 				return it, err
 			}
 			it.AvatarURL = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateSponsorInput(ctx context.Context, obj interface{}) (model.CreateSponsorInput, error) {
+	var it model.CreateSponsorInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"eventId", "name", "logoUrl", "websiteUrl", "tier"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "eventId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EventID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "logoUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logoUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LogoURL = data
+		case "websiteUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("websiteUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WebsiteURL = data
+		case "tier":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tier"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tier = data
 		}
 	}
 
@@ -6943,6 +8269,67 @@ func (ec *executionContext) unmarshalInputUpdateSpeakerInput(ctx context.Context
 
 // region    **************************** object.gotpl ****************************
 
+var announcementImplementors = []string{"Announcement"}
+
+func (ec *executionContext) _Announcement(ctx context.Context, sel ast.SelectionSet, obj *model.Announcement) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, announcementImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Announcement")
+		case "id":
+			out.Values[i] = ec._Announcement_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "eventId":
+			out.Values[i] = ec._Announcement_eventId(ctx, field, obj)
+		case "title":
+			out.Values[i] = ec._Announcement_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "body":
+			out.Values[i] = ec._Announcement_body(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdBy":
+			out.Values[i] = ec._Announcement_createdBy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._Announcement_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var eventImplementors = []string{"Event"}
 
 func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj *model.Event) graphql.Marshaler {
@@ -7136,6 +8523,34 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "revokeUserRole":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_revokeUserRole(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "registerDeviceToken":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_registerDeviceToken(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createAnnouncement":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAnnouncement(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createSponsor":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createSponsor(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteSponsor":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteSponsor(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7434,6 +8849,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "announcements":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_announcements(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "sponsors":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sponsors(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -7619,6 +9078,61 @@ func (ec *executionContext) _Speaker(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Speaker_bio(ctx, field, obj)
 		case "avatarUrl":
 			out.Values[i] = ec._Speaker_avatarUrl(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sponsorImplementors = []string{"Sponsor"}
+
+func (ec *executionContext) _Sponsor(ctx context.Context, sel ast.SelectionSet, obj *model.Sponsor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sponsorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Sponsor")
+		case "id":
+			out.Values[i] = ec._Sponsor_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "eventId":
+			out.Values[i] = ec._Sponsor_eventId(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Sponsor_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "logoUrl":
+			out.Values[i] = ec._Sponsor_logoUrl(ctx, field, obj)
+		case "websiteUrl":
+			out.Values[i] = ec._Sponsor_websiteUrl(ctx, field, obj)
+		case "tier":
+			out.Values[i] = ec._Sponsor_tier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8022,6 +9536,64 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAnnouncement2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncement(ctx context.Context, sel ast.SelectionSet, v model.Announcement) graphql.Marshaler {
+	return ec._Announcement(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAnnouncement2ᚕᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncementᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Announcement) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAnnouncement2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncement(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAnnouncement2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐAnnouncement(ctx context.Context, sel ast.SelectionSet, v *model.Announcement) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Announcement(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8037,6 +9609,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateAnnouncementInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateAnnouncementInput(ctx context.Context, v interface{}) (model.CreateAnnouncementInput, error) {
+	res, err := ec.unmarshalInputCreateAnnouncementInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateEventInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateEventInput(ctx context.Context, v interface{}) (model.CreateEventInput, error) {
 	res, err := ec.unmarshalInputCreateEventInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8049,6 +9626,11 @@ func (ec *executionContext) unmarshalNCreateSessionInput2githubᚗcomᚋgdgᚑes
 
 func (ec *executionContext) unmarshalNCreateSpeakerInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateSpeakerInput(ctx context.Context, v interface{}) (model.CreateSpeakerInput, error) {
 	res, err := ec.unmarshalInputCreateSpeakerInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateSponsorInput2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐCreateSponsorInput(ctx context.Context, v interface{}) (model.CreateSponsorInput, error) {
+	res, err := ec.unmarshalInputCreateSponsorInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -8403,6 +9985,64 @@ func (ec *executionContext) marshalNSpeaker2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋ
 		return graphql.Null
 	}
 	return ec._Speaker(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSponsor2githubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v model.Sponsor) graphql.Marshaler {
+	return ec._Sponsor(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSponsor2ᚕᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Sponsor) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSponsor2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNSponsor2ᚖgithubᚗcomᚋgdgᚑeskisehirᚋeventsᚋbackendᚋgqlgenᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v *model.Sponsor) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Sponsor(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -8821,6 +10461,22 @@ func (ec *executionContext) marshalOEventStatus2ᚖgithubᚗcomᚋgdgᚑeskisehi
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalID(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

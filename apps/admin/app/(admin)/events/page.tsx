@@ -8,10 +8,14 @@ import {
   createSpeaker,
   isAuthError,
   listAdminEvents,
+  listEventSchedule,
   publishEvent,
   toFriendlyMessage,
   updateEvent,
+  updateSession,
+  updateSpeaker,
 } from "@/lib/api";
+import { composeEventDescription } from "@/lib/event-description";
 import { clearAuthTokenCookie, getAuthTokenFromCookie } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -28,25 +32,6 @@ export default async function EventsPage({ searchParams }: Props) {
   async function createEventAction(formData: FormData) {
     "use server";
 
-    const composeDescription = (
-      baseDescription: string,
-      extras: {
-        location?: string;
-        eventImageUrl?: string;
-        isFree: boolean;
-        price?: string;
-      },
-    ): string => {
-      const lines = [baseDescription.trim()];
-      if (extras.location?.trim()) {
-        lines.push(`Location: ${extras.location.trim()}`);
-      }
-      lines.push(`Pricing: ${extras.isFree ? "Free" : `Paid (${extras.price || "n/a"})`}`);
-      if (extras.eventImageUrl?.trim()) {
-        lines.push(`Event image: ${extras.eventImageUrl.trim()}`);
-      }
-      return lines.filter(Boolean).join("\n\n");
-    };
     const authToken = await getAuthTokenFromCookie();
     if (!authToken) {
       redirect("/login");
@@ -82,7 +67,7 @@ export default async function EventsPage({ searchParams }: Props) {
     try {
       const created = await createEvent(authToken, {
         title,
-        description: composeDescription(description, {
+        description: composeEventDescription(description, {
           location,
           eventImageUrl,
           isFree,
@@ -158,7 +143,11 @@ export default async function EventsPage({ searchParams }: Props) {
     }
     const eventId = String(formData.get("eventId") ?? "").trim();
     const title = String(formData.get("title") ?? "").trim();
-    const description = String(formData.get("description") ?? "").trim();
+    const bodyDescription = String(formData.get("bodyDescription") ?? "").trim();
+    const location = String(formData.get("location") ?? "");
+    const eventImageUrl = String(formData.get("eventImageUrl") ?? "");
+    const isFree = formData.get("isFree") === "on";
+    const price = String(formData.get("price") ?? "").trim();
     const startsAtRaw = String(formData.get("startsAt") ?? "").trim();
     const endsAtRaw = String(formData.get("endsAt") ?? "").trim();
     const capacity = Number(String(formData.get("capacity") ?? "0").trim());
@@ -173,17 +162,109 @@ export default async function EventsPage({ searchParams }: Props) {
     if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
       redirect("/events?kind=error&message=End+time+must+be+after+start+time");
     }
+    const composedDescription = composeEventDescription(bodyDescription, {
+      location,
+      eventImageUrl,
+      isFree,
+      price,
+    });
     let kind = "success";
     let message = "Event updated";
     try {
       await updateEvent(authToken, {
         id: eventId,
         title,
-        description,
+        description: composedDescription,
         capacity,
         startsAt,
         endsAt,
       });
+
+      const sessionIds = formData.getAll("sessionId").map((v) => String(v).trim());
+      const speakerIds = formData.getAll("speakerId").map((v) => String(v).trim());
+      const topicTitles = formData.getAll("sessionTopicTitle").map((v) => String(v).trim());
+      const topicDescriptions = formData.getAll("sessionTopicDescription").map((v) => String(v).trim());
+      const topicRooms = formData.getAll("sessionTopicRoom").map((v) => String(v).trim());
+      const sessionStarts = formData.getAll("sessionStartsAt").map((v) => String(v).trim());
+      const sessionEnds = formData.getAll("sessionEndsAt").map((v) => String(v).trim());
+      const speakerNames = formData.getAll("sessionSpeakerName").map((v) => String(v).trim());
+      const speakerBios = formData.getAll("sessionSpeakerBio").map((v) => String(v).trim());
+      const speakerAvatars = formData.getAll("sessionSpeakerAvatarUrl").map((v) => String(v).trim());
+
+      const n = Math.max(
+        sessionIds.length,
+        topicTitles.length,
+        sessionStarts.length,
+        sessionEnds.length,
+      );
+      for (let i = 0; i < n; i += 1) {
+        const topicTitle = topicTitles[i] ?? "";
+        if (!topicTitle.trim()) {
+          continue;
+        }
+        const sStartRaw = sessionStarts[i] ?? "";
+        const sEndRaw = sessionEnds[i] ?? "";
+        if (!sStartRaw || !sEndRaw) {
+          continue;
+        }
+        const sStart = new Date(sStartRaw).toISOString();
+        const sEnd = new Date(sEndRaw).toISOString();
+        if (new Date(sEnd).getTime() <= new Date(sStart).getTime()) {
+          continue;
+        }
+        const sid = sessionIds[i] ?? "";
+        const spName = speakerNames[i] ?? "";
+        const spBio = speakerBios[i] ?? "";
+        const spAvatar = speakerAvatars[i] ?? "";
+        const spid = speakerIds[i] ?? "";
+
+        if (sid && sid !== "new") {
+          await updateSession(authToken, {
+            id: sid,
+            title: topicTitle,
+            description: topicDescriptions[i] || undefined,
+            startsAt: sStart,
+            endsAt: sEnd,
+            room: topicRooms[i] || undefined,
+          });
+          if (spid) {
+            const spPatch: { id: string; fullName?: string; bio?: string; avatarUrl?: string } = {
+              id: spid,
+            };
+            if (spName.trim()) spPatch.fullName = spName.trim();
+            if (spBio.trim()) spPatch.bio = spBio.trim();
+            if (spAvatar.trim()) spPatch.avatarUrl = spAvatar.trim();
+            if (Object.keys(spPatch).length > 1) {
+              await updateSpeaker(authToken, spPatch);
+            }
+          } else if (spName.trim()) {
+            const sp = await createSpeaker(authToken, {
+              fullName: spName.trim(),
+              bio: spBio || undefined,
+              avatarUrl: spAvatar || undefined,
+            });
+            await attachSpeakerToSession(authToken, sid, sp.id);
+          }
+        } else {
+          const created = await createSession(authToken, {
+            eventId,
+            title: topicTitle.trim(),
+            description: topicDescriptions[i] || undefined,
+            startsAt: sStart,
+            endsAt: sEnd,
+            room: topicRooms[i] || undefined,
+          });
+          if (spName.trim()) {
+            const sp = await createSpeaker(authToken, {
+              fullName: spName.trim(),
+              bio: spBio || undefined,
+              avatarUrl: spAvatar || undefined,
+            });
+            await attachSpeakerToSession(authToken, created.id, sp.id);
+          }
+        }
+      }
+
       if (targetStatus !== previousStatus) {
         if (targetStatus === "published") {
           await publishEvent(authToken, eventId);
@@ -213,6 +294,23 @@ export default async function EventsPage({ searchParams }: Props) {
       message = toFriendlyMessage(error, "Update event failed");
     }
     redirect(`/events?kind=${kind}&message=${encodeURIComponent(message)}`);
+  }
+
+  async function loadEventScheduleAction(eventId: string) {
+    "use server";
+    const authToken = await getAuthTokenFromCookie();
+    if (!authToken) {
+      redirect("/login");
+    }
+    try {
+      return await listEventSchedule(authToken, eventId);
+    } catch (error) {
+      if (isAuthError(error)) {
+        await clearAuthTokenCookie();
+        redirect("/login");
+      }
+      return [];
+    }
   }
 
   const token = await getAuthTokenFromCookie();
@@ -261,6 +359,7 @@ export default async function EventsPage({ searchParams }: Props) {
         <EventDetailModal
           events={filtered}
           onUpdate={updateEventAction}
+          onLoadSchedule={loadEventScheduleAction}
         />
       </div>
     );

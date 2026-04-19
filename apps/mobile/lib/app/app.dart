@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,16 +15,30 @@ class GdgEventsApp extends ConsumerStatefulWidget {
 }
 
 class _GdgEventsAppState extends ConsumerState<GdgEventsApp> {
-  var _pushInitialized = false;
+  StreamSubscription<User?>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (!mounted || user == null) return;
+      final push = ref.read(pushServiceProvider);
+      Future.microtask(() async {
+        await push.init();
+        await push.registerDeviceTokenWithBackend();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
-
-    if (!_pushInitialized && FirebaseAuth.instance.currentUser != null) {
-      _pushInitialized = true;
-      Future.microtask(() => ref.read(pushServiceProvider).init());
-    }
 
     return MaterialApp.router(
       title: 'GDG Eskisehir',

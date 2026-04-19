@@ -43,9 +43,31 @@ func (r *DeviceTokenRepository) ListByUserID(ctx context.Context, userID string)
 }
 
 func (r *DeviceTokenRepository) ListByUserIDs(ctx context.Context, userIDs []string) ([]ports.DeviceToken, error) {
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
 	rows, err := r.db.Pool.Query(ctx, `
 		SELECT id, user_id, token, platform FROM device_tokens WHERE user_id = ANY($1)
 	`, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var tokens []ports.DeviceToken
+	for rows.Next() {
+		var t ports.DeviceToken
+		if err := rows.Scan(&t.ID, &t.UserID, &t.Token, &t.Platform); err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, t)
+	}
+	return tokens, nil
+}
+
+func (r *DeviceTokenRepository) ListAll(ctx context.Context) ([]ports.DeviceToken, error) {
+	rows, err := r.db.Pool.Query(ctx, `
+		SELECT id, user_id, token, platform FROM device_tokens
+	`)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,8 @@ import 'package:gdg_events/features/schedule/domain/repositories/schedule_reposi
 import 'package:gdg_events/features/speakers/data/speakers_repository_impl.dart';
 import 'package:gdg_events/features/speakers/domain/repositories/speakers_repository.dart';
 import 'package:gdg_events/core/push/push_service.dart';
+import 'package:gdg_events/features/announcements/data/announcements_repository_impl.dart';
+import 'package:gdg_events/features/announcements/domain/repositories/announcements_repository.dart';
 
 final firebaseAuthProvider =
     Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -40,6 +42,10 @@ final speakersRepositoryProvider = Provider<SpeakersRepository>(
 
 final profileRepositoryProvider = Provider<ProfileRepository>(
   (ref) => ProfileRepositoryImpl(ref.watch(graphQLClientProvider)),
+);
+
+final announcementsRepositoryProvider = Provider<AnnouncementsRepository>(
+  (ref) => AnnouncementsRepositoryImpl(ref.watch(graphQLClientProvider)),
 );
 
 final pushServiceProvider = Provider<PushService>(

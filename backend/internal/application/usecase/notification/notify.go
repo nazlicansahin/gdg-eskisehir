@@ -37,6 +37,7 @@ func (s *Service) NotifyUser(ctx context.Context, userID string, msg ports.PushM
 
 func (s *Service) NotifyUsers(ctx context.Context, userIDs []string, msg ports.PushMessage) {
 	if len(userIDs) == 0 {
+		log.Printf("notification: NotifyUsers skipped: zero user ids")
 		return
 	}
 	tokens, err := s.deviceTokens.ListByUserIDs(ctx, userIDs)
@@ -48,7 +49,28 @@ func (s *Service) NotifyUsers(ctx context.Context, userIDs []string, msg ports.P
 	for i, t := range tokens {
 		raw[i] = t.Token
 	}
+	log.Printf("notification: NotifyUsers users=%d device_tokens=%d title=%q", len(userIDs), len(raw), msg.Title)
 	if err := s.push.SendToTokens(ctx, raw, msg); err != nil {
 		log.Printf("notification: push to %d users: %v", len(userIDs), err)
+	}
+}
+
+func (s *Service) NotifyAllDevices(ctx context.Context, msg ports.PushMessage) {
+	tokens, err := s.deviceTokens.ListAll(ctx)
+	if err != nil {
+		log.Printf("[announcement] NotifyAllDevices list tokens: %v", err)
+		return
+	}
+	if len(tokens) == 0 {
+		log.Printf("[announcement] NotifyAllDevices: no device tokens in DB")
+		return
+	}
+	raw := make([]string, len(tokens))
+	for i, t := range tokens {
+		raw[i] = t.Token
+	}
+	log.Printf("[announcement] NotifyAllDevices device_tokens=%d title=%q", len(raw), msg.Title)
+	if err := s.push.SendToTokens(ctx, raw, msg); err != nil {
+		log.Printf("[announcement] NotifyAllDevices SendToTokens: %v", err)
 	}
 }

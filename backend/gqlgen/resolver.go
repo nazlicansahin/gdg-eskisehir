@@ -2,6 +2,7 @@ package gqlgen
 
 import (
 	"context"
+	"log"
 
 	"github.com/gdg-eskisehir/events/backend/gqlgen/model"
 	"github.com/gdg-eskisehir/events/backend/internal/application/ports"
@@ -55,6 +56,8 @@ type Resolver struct {
 	AdminRegs         *registration.AdminListRegistrationsUseCase
 	CancelReg         *registration.CancelRegistrationUseCase
 	Notifier          *notification.Service
+	AnnouncementRepo  ports.AnnouncementRepository
+	SponsorRepo       ports.SponsorRepository
 }
 
 func gqlAPIError(err error) error {
@@ -735,6 +738,180 @@ func (r *mutationResolver) RegisterDeviceToken(ctx context.Context, token string
 		return false, gqlAPIError(err)
 	}
 	return true, nil
+}
+
+func (r *mutationResolver) CreateAnnouncement(ctx context.Context, input model.CreateAnnouncementInput) (*model.Announcement, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	if err := policy.CanCreateEvent(actor.Roles); err != nil {
+		return nil, gqlAPIError(err)
+	}
+	a := &domain.Announcement{
+		EventID:   input.EventID,
+		Title:     input.Title,
+		Body:      input.Body,
+		CreatedBy: actor.UserID,
+	}
+	if err := r.AnnouncementRepo.Create(ctx, a); err != nil {
+		return nil, gqlAPIError(err)
+	}
+	log.Printf(
+		"[announcement] created id=%s eventID=%v creator=%s title=%q notifier=%v",
+		a.ID, a.EventID, a.CreatedBy, a.Title, r.Notifier != nil,
+	)
+	if r.Notifier != nil {
+		creatorID := actor.UserID
+		go func() {
+			bgCtx := context.Background()
+			if a.EventID != nil {
+				userIDs := r.registeredUserIDsForEvent(bgCtx, *a.EventID)
+				registered := len(userIDs)
+				userIDs = appendUserIDIfMissing(userIDs, creatorID)
+				log.Printf(
+					"[announcement] push event=%s active_registrations=%d push_user_ids=%d",
+					*a.EventID, registered, len(userIDs),
+				)
+				if len(userIDs) > 0 {
+					r.Notifier.NotifyUsers(bgCtx, userIDs, ports.PushMessage{
+						Title: a.Title,
+						Body:  a.Body,
+						Data:  map[string]string{"type": "announcement", "eventId": *a.EventID},
+					})
+				}
+			} else {
+				log.Printf("[announcement] push broadcast (general)")
+				r.Notifier.NotifyAllDevices(bgCtx, ports.PushMessage{
+					Title: a.Title,
+					Body:  a.Body,
+					Data:  map[string]string{"type": "announcement_general"},
+				})
+			}
+		}()
+	} else {
+		log.Printf("[announcement] notifier nil, skipping push")
+	}
+	return toModelAnnouncement(a), nil
+}
+
+func (r *queryResolver) Announcements(ctx context.Context, eventID *string) ([]*model.Announcement, error) {
+	var list []*domain.Announcement
+	var err error
+	if eventID != nil {
+		list, err = r.AnnouncementRepo.ListByEventID(ctx, *eventID)
+	} else {
+		list, err = r.AnnouncementRepo.ListAll(ctx)
+	}
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	out := make([]*model.Announcement, 0, len(list))
+	for _, a := range list {
+		out = append(out, toModelAnnouncement(a))
+	}
+	return out, nil
+}
+
+func (r *mutationResolver) registeredUserIDsForEvent(ctx context.Context, eventID string) []string {
+	regs, err := r.Registrations.ListByEventID(ctx, eventID)
+	if err != nil {
+		return nil
+	}
+	ids := make([]string, 0, len(regs))
+	for _, reg := range regs {
+		if reg.Status == "active" {
+			ids = append(ids, reg.UserID)
+		}
+	}
+	return ids
+}
+
+func appendUserIDIfMissing(ids []string, userID string) []string {
+	if userID == "" {
+		return ids
+	}
+	for _, id := range ids {
+		if id == userID {
+			return ids
+		}
+	}
+	return append(ids, userID)
+}
+
+func toModelAnnouncement(a *domain.Announcement) *model.Announcement {
+	return &model.Announcement{
+		ID:        a.ID,
+		EventID:   a.EventID,
+		Title:     a.Title,
+		Body:      a.Body,
+		CreatedBy: a.CreatedBy,
+		CreatedAt: a.CreatedAt,
+	}
+}
+
+func (r *mutationResolver) CreateSponsor(ctx context.Context, input model.CreateSponsorInput) (*model.Sponsor, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	if err := policy.CanCreateEvent(actor.Roles); err != nil {
+		return nil, gqlAPIError(err)
+	}
+	s := &domain.Sponsor{
+		EventID:    input.EventID,
+		Name:       input.Name,
+		LogoURL:    input.LogoURL,
+		WebsiteURL: input.WebsiteURL,
+		Tier:       input.Tier,
+	}
+	if err := r.SponsorRepo.Create(ctx, s); err != nil {
+		return nil, gqlAPIError(err)
+	}
+	return toModelSponsor(s), nil
+}
+
+func (r *mutationResolver) DeleteSponsor(ctx context.Context, id string) (bool, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return false, gqlAPIError(err)
+	}
+	if err := policy.CanCreateEvent(actor.Roles); err != nil {
+		return false, gqlAPIError(err)
+	}
+	if err := r.SponsorRepo.Delete(ctx, id); err != nil {
+		return false, gqlAPIError(err)
+	}
+	return true, nil
+}
+
+func (r *queryResolver) Sponsors(ctx context.Context, eventID *string) ([]*model.Sponsor, error) {
+	var list []*domain.Sponsor
+	var err error
+	if eventID != nil {
+		list, err = r.SponsorRepo.ListByEventID(ctx, *eventID)
+	} else {
+		list, err = r.SponsorRepo.ListAll(ctx)
+	}
+	if err != nil {
+		return nil, gqlAPIError(err)
+	}
+	out := make([]*model.Sponsor, 0, len(list))
+	for _, s := range list {
+		out = append(out, toModelSponsor(s))
+	}
+	return out, nil
+}
+
+func toModelSponsor(s *domain.Sponsor) *model.Sponsor {
+	return &model.Sponsor{
+		ID:         s.ID,
+		EventID:    s.EventID,
+		Name:       s.Name,
+		LogoURL:    s.LogoURL,
+		WebsiteURL: s.WebsiteURL,
+		Tier:       s.Tier,
+	}
 }
 
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }

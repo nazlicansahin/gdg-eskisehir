@@ -4,6 +4,7 @@ import 'package:gdg_events/app/auth_refresh.dart';
 import 'package:gdg_events/features/auth/presentation/login_page.dart';
 import 'package:gdg_events/features/events/presentation/event_detail_page.dart';
 import 'package:gdg_events/features/events/presentation/events_list_page.dart';
+import 'package:gdg_events/features/announcements/presentation/create_announcement_page.dart';
 import 'package:gdg_events/features/checkin/presentation/checkin_scan_page.dart';
 import 'package:gdg_events/features/profile/presentation/profile_page.dart';
 import 'package:gdg_events/features/registration/presentation/ticket_page.dart';
@@ -79,6 +80,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               final eventId = state.uri.queryParameters['eventId'];
               return CheckInScanPage(initialEventId: eventId);
             },
+          ),
+          GoRoute(
+            path: '/announcements/new',
+            builder: (context, state) => const CreateAnnouncementPage(),
           ),
         ],
       ),

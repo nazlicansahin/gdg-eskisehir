@@ -87,6 +87,8 @@ func main() {
 		log.Fatalf("firebase: %v", err)
 	}
 
+	announcementRepo := postgres.NewAnnouncementRepository(db)
+	sponsorRepo := postgres.NewSponsorRepository2(db)
 	deviceTokenRepo := postgres.NewDeviceTokenRepository(db)
 	pushSender, err := fcm.NewSender(ctx, cfg.FirebaseProjectID, cfg.FirebaseServiceAccountJSONB64)
 	if err != nil {
@@ -143,6 +145,8 @@ func main() {
 			AdminRegs:         adminRegs,
 			CancelReg:         cancelReg,
 			Notifier:          notifier,
+			AnnouncementRepo:  announcementRepo,
+			SponsorRepo:       sponsorRepo,
 		},
 	}))
 

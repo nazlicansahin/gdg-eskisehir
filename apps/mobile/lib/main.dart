@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/app.dart';
@@ -17,6 +18,15 @@ Future<void> main() async {
       rethrow;
     }
   }
+
+  // Subscribe as early as possible so foreground FCM is not missed before PushService.init (auth).
+  FirebaseMessaging.onMessage.listen((RemoteMessage m) {
+    debugPrint(
+      '[push][bootstrap] onMessage id=${m.messageId} '
+      'from=${m.from} notification=${m.notification?.title}',
+    );
+  });
+
   runApp(
     const ProviderScope(
       child: GdgEventsApp(),

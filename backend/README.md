@@ -29,7 +29,7 @@ This backend follows:
 
 Prerequisites:
 
-- PostgreSQL running and migrations applied (`0001_phase1_core.sql`, `0002_user_roles.sql`, `0003_device_tokens.sql`)
+- PostgreSQL running and migrations applied through `0005_sponsors.sql` (including `0004_announcements.sql`)
 - Repo root `.env.local` with `BACKEND_DB_DSN`, `BACKEND_FIREBASE_PROJECT_ID`, `BACKEND_FIREBASE_SERVICE_ACCOUNT_JSON_BASE64`
 
 From `backend/`:
