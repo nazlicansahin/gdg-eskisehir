@@ -32,6 +32,12 @@ mutation UpdateMyProfile($displayName: String!) {
 }
 ''';
 
+  static const String _mDeleteAccount = r'''
+mutation DeleteMyAccount {
+  deleteMyAccount
+}
+''';
+
   @override
   Future<Either<Failure, ProfileUser>> me() async {
     try {
@@ -81,6 +87,27 @@ mutation UpdateMyProfile($displayName: String!) {
         );
       }
       return Right(_map(raw));
+    } catch (e, st) {
+      return Left(mapGraphQlException(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deleteMyAccount() async {
+    try {
+      final result = await _client.mutate(
+        MutationOptions(document: gql(_mDeleteAccount)),
+      );
+      if (result.hasException) {
+        return Left(mapGraphQlException(result.exception!, StackTrace.current));
+      }
+      final ok = result.data?['deleteMyAccount'] as bool?;
+      if (ok != true) {
+        return const Left(
+          GraphQlFailure('Could not delete account', code: 'INTERNAL'),
+        );
+      }
+      return const Right(unit);
     } catch (e, st) {
       return Left(mapGraphQlException(e, st));
     }

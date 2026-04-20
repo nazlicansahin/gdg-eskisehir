@@ -1,0 +1,245 @@
+{
+  "LocaleLayout": {
+    "title": "GDG Eskişehir — Events"
+  },
+  "nav": {
+    "home": "Home",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "support": "Support"
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "names": {
+      "en": "English",
+      "tr": "Türkçe"
+    }
+  },
+  "footer": {
+    "organiserName": "Nazlıcan Şahin",
+    "organiserEmail": "nnazlicansahin@gmail.com",
+    "note": "GDG Eskişehir — community contact for this site and the GDG Events app."
+  },
+  "home": {
+    "title": "GDG Eskişehir — legal",
+    "lead": "Official legal information for the GDG Eskişehir mobile application (GDG Events on iOS and Android). These pages are maintained in English as the reference version; Turkish is provided for convenience.",
+    "ctaPrivacy": "Privacy Policy",
+    "ctaTerms": "Terms of Use",
+    "ctaSupport": "Support"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "metaDescription": "GDG Eskişehir Events app: how we use Firebase Auth, push notifications, GraphQL backend, registrations, and your rights.",
+    "lastUpdatedLabel": "Last updated: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "controller",
+        "title": "Who we are",
+        "paragraphs": [
+          "This Privacy Policy describes how the GDG Eskişehir community (“we”, “us”) processes personal data when you use our mobile application GDG Events (the “App”) and the related online services we operate (together, the “Services”).",
+          "GDG Eskişehir is a volunteer Google Developer Group community. For privacy requests, data subject rights, and general questions about this policy, contact nnazlicansahin@gmail.com."
+        ]
+      },
+      {
+        "id": "scope",
+        "title": "What this covers",
+        "paragraphs": [
+          "The Services include: signing in with email and password via Google Firebase Authentication; browsing published events; registering for events; viewing your ticket and QR code when offered; optional push notifications about events (Firebase Cloud Messaging on Android and Apple Push Notification service on iOS through Firebase); updating your profile display name; and, for designated organizers or staff, features such as QR/manual check-in and announcements, where enabled.",
+          "Your data is processed by our GraphQL API backend (account and event data), Firebase (authentication and push infrastructure), and the platform providers Apple and Google as part of running the app on your device. If you open external links from the App, those sites follow their own policies."
+        ]
+      },
+      {
+        "id": "data-collected",
+        "title": "Personal data we process",
+        "paragraphs": [
+          "Account and profile: Email address, Firebase user identifier, and display name you choose in the profile screen.",
+          "Events and participation: Event registrations, digital ticket / QR payload referenced at check-in, registration status, and check-in timestamps when you attend (including staff-initiated scan or manual check-in where the product supports it).",
+          "Push notifications: If you opt in, a device push token is registered so we can send operational messages about events you care about (we do not use this for third-party advertising).",
+          "Staff / organizer features: If your account has elevated roles (for example organizer or check-in staff), we process your role assignments and actions performed in the App (such as check-in or sending announcements) as needed to operate those features.",
+          "Technical data: Limited server and security-related information such as API requests tied to your authenticated session, app version, and platform (iOS/Android) as required to run and protect the Services. We do not use the App to collect your precise GPS location or your contacts list."
+        ]
+      },
+      {
+        "id": "purposes",
+        "title": "Why we process data",
+        "paragraphs": [
+          "We process personal data to provide the Services: authenticate you, manage event discovery and registration, issue and validate tickets/check-in, deliver push notifications you have enabled, operate organizer tools, maintain security, troubleshoot issues, and meet legal obligations.",
+          "We do not sell your personal data."
+        ]
+      },
+      {
+        "id": "legal-bases",
+        "title": "Legal bases (EEA, UK, Switzerland)",
+        "paragraphs": [
+          "Where GDPR-style laws apply, we rely on: performance of a contract (providing the App and related features you ask for); legitimate interests where applicable (for example securing the Services, preventing abuse, and improving reliability), balanced against your rights; consent where required (for example enabling push notifications on your device); and legal obligation where we must retain or disclose information."
+        ]
+      },
+      {
+        "id": "sharing",
+        "title": "Processors and sharing",
+        "paragraphs": [
+          "We use Google Firebase services including Firebase Authentication and Firebase Cloud Messaging (FCM). Apple devices receive push delivery through Apple’s infrastructure as integrated with Firebase. These providers act as processors or service providers on our instructions.",
+          "Our GraphQL backend stores and processes account, event, and registration data required for the App. Hosting and infrastructure depend on how we deploy the API (cloud provider’s region and subprocessors may apply).",
+          "We do not sell personal data. We may disclose information if required by law or to protect the rights, safety, or integrity of users and the community."
+        ]
+      },
+      {
+        "id": "transfers",
+        "title": "International transfers",
+        "paragraphs": [
+          "Firebase and other cloud services may process data in the United States and other countries. Where required, we rely on appropriate safeguards such as Standard Contractual Clauses and supplementary measures consistent with applicable law."
+        ]
+      },
+      {
+        "id": "retention",
+        "title": "Retention",
+        "paragraphs": [
+          "We keep data only as long as needed for the purposes above: for example, while your account exists and for related event records, subject to operational and legal requirements. When you delete your account (see below), we delete or anonymize app-held personal data as described there, except where a narrow retention obligation applies."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Security",
+        "paragraphs": [
+          "We use HTTPS/TLS between the App and our API, authenticated access to backend operations, and reasonable organizational measures. No online service can guarantee absolute security."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "Your rights",
+        "paragraphs": [
+          "Depending on where you live, you may have rights to access, correct, delete, restrict, or object to certain processing, and to lodge a complaint with a supervisory authority. Contact nnazlicansahin@gmail.com to exercise these rights; we may verify your identity before fulfilling requests."
+        ]
+      },
+      {
+        "id": "account-deletion",
+        "title": "Account deletion",
+        "paragraphs": [
+          "You can delete your account in the App: open Profile, use Delete account, confirm in the dialog, and re-enter your password when prompted so your login can be securely removed. This triggers deletion of your app/server-side personal data tied to the account (including registrations and device notification tokens where applicable) and deletion of your Firebase Authentication user.",
+          "If you cannot complete in-app deletion (for example you lost access), email nnazlicansahin@gmail.com from your account email and we will assist within a reasonable time. Some residual backups or legal records may persist for a short period where strictly necessary."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "Children",
+        "paragraphs": [
+          "The Services are meant for a general developer-community audience and are not directed at children under the age where consent is required under local law. If you believe we have collected personal data from a child inappropriately, contact us and we will delete it where appropriate."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "Changes",
+        "paragraphs": [
+          "We may update this Privacy Policy. We will revise the “Last updated” date on this page when we do. Continued use of the App after changes means you acknowledge the updated policy where permitted by law."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "paragraphs": [
+          "Privacy & data requests: nnazlicansahin@gmail.com",
+          "Postal address: Not required for core Services; electronic contact above is sufficient for exercising rights and support related to this policy."
+        ]
+      }
+    ]
+  },
+  "support": {
+    "title": "Support",
+    "metaDescription": "How to get help with the GDG Eskişehir GDG Events app.",
+    "lastUpdatedLabel": "Last updated: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "overview",
+        "title": "Help with the app",
+        "paragraphs": [
+          "This page lists how to reach the GDG Eskişehir organizers for the GDG Events mobile app (Android & iOS). We are a volunteer-led community; response times are best-effort, typically within several business days."
+        ]
+      },
+      {
+        "id": "email",
+        "title": "Email",
+        "paragraphs": [
+          "For questions about events, access issues, privacy, or account problems, write to nnazlicansahin@gmail.com.",
+          "When reporting a technical issue, include your platform (iOS or Android), app version if known, and a short description of what happened."
+        ]
+      },
+      {
+        "id": "account",
+        "title": "Account deletion",
+        "paragraphs": [
+          "To delete your account and associated data, use Profile → Delete account in the App (you will be asked to confirm and enter your password). If you cannot sign in, contact nnazlicansahin@gmail.com using the email address associated with your account so we can verify ownership."
+        ]
+      },
+      {
+        "id": "privacy",
+        "title": "Privacy policy",
+        "paragraphs": [
+          "How we use Firebase, push notifications, and backend data is described in our Privacy Policy on this site (see the navigation link)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "metaDescription": "Terms of use for the GDG Eskişehir GDG Events mobile application.",
+    "lastUpdatedLabel": "Last updated: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "acceptance",
+        "title": "Agreement",
+        "paragraphs": [
+          "By downloading or using the GDG Eskişehir GDG Events mobile application (the “App”), you agree to these Terms of Use. If you do not agree, do not use the App.",
+          "The App is offered by the GDG Eskişehir community as a non-commercial community service for discovering and participating in community tech events. Event-specific rules may also apply at the venue."
+        ]
+      },
+      {
+        "id": "service",
+        "title": "The service",
+        "paragraphs": [
+          "The App provides features such as account login (Firebase Authentication with email and password), browsing published events, event registration, tickets/QR where enabled, optional push notifications via Firebase Cloud Messaging / Apple push, profile settings, and organizer/staff tools where your account has those permissions.",
+          "We may change, suspend, or discontinue features to maintain security or capacity. We do not guarantee uninterrupted availability."
+        ]
+      },
+      {
+        "id": "conduct",
+        "title": "Acceptable use",
+        "paragraphs": [
+          "You agree not to misuse the App or backend: no unlawful activity, harassment, attempts to bypass security or quotas, scraping that harms the service, or interfering with other users’ experience.",
+          "Organizers may refuse admission or participation at events according to venue or community policies."
+        ]
+      },
+      {
+        "id": "disclaimers",
+        "title": "Disclaimer",
+        "paragraphs": [
+          "The App is provided “as is” to the extent permitted by law. GDG Eskişehir volunteers are not liable for indirect or consequential damages arising from use of the App, except where liability cannot be excluded under mandatory consumer law.",
+          "Third-party services (Google Firebase, platform stores, network providers) have their own terms; your use of those is subject to their policies."
+        ]
+      },
+      {
+        "id": "privacy",
+        "title": "Privacy",
+        "paragraphs": [
+          "Our Privacy Policy on this website explains how we process personal data and how you can delete your account or exercise rights."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "Changes",
+        "paragraphs": [
+          "We may update these Terms. The “Last updated” date at the top of this page will change when we do. Continued use of the App after changes constitutes acceptance of the updated Terms where permitted by law."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "paragraphs": [
+          "Questions about these Terms: nnazlicansahin@gmail.com."
+        ]
+      }
+    ]
+  }
+}

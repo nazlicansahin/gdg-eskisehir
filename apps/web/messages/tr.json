@@ -1,0 +1,245 @@
+{
+  "LocaleLayout": {
+    "title": "GDG Eskişehir — Etkinlikler"
+  },
+  "nav": {
+    "home": "Ana sayfa",
+    "privacy": "Gizlilik politikası",
+    "terms": "Kullanım şartları",
+    "support": "Destek"
+  },
+  "localeSwitcher": {
+    "label": "Dil",
+    "names": {
+      "en": "İngilizce",
+      "tr": "Türkçe"
+    }
+  },
+  "footer": {
+    "organiserName": "Nazlıcan Şahin",
+    "organiserEmail": "nnazlicansahin@gmail.com",
+    "note": "GDG Eskişehir — bu site ve GDG Events uygulaması için topluluk iletişimi."
+  },
+  "home": {
+    "title": "GDG Eskişehir — yasal bilgiler",
+    "lead": "GDG Eskişehir mobil uygulaması (iOS ve Android üzerinde GDG Events) için resmi yasal sayfalar. Referans metin İngilizcedir; Türkçe çeviri kullanıcı kolaylığı içindir.",
+    "ctaPrivacy": "Gizlilik politikası",
+    "ctaTerms": "Kullanım şartları",
+    "ctaSupport": "Destek"
+  },
+  "privacy": {
+    "title": "Gizlilik politikası",
+    "metaDescription": "GDG Eskişehir Events uygulaması: Firebase oturumu, anlık bildirimler, GraphQL arka uç, kayıtlar ve haklarınız.",
+    "lastUpdatedLabel": "Son güncelleme: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "controller",
+        "title": "Biz kimiz",
+        "paragraphs": [
+          "Bu Gizlilik Politikası, GDG Eskişehir topluluğunun (“biz”) GDG Events mobil uygulamasını (“Uygulama”) ve işlettiğimiz ilişkili çevrimiçi servisleri (birlikte “Hizmetler”) kullandığınızda kişisel verilerinizi nasıl işlediğini açıklar.",
+          "GDG Eskişehir gönüllü bir Google Developer Group topluluğudur. Bu politika, veri sahibi başvuruları ve genel sorular için: nnazlicansahin@gmail.com"
+        ]
+      },
+      {
+        "id": "scope",
+        "title": "Kapsam",
+        "paragraphs": [
+          "Hizmetler şunları içerir: Google Firebase Authentication ile e-posta ve şifre ile oturum; yayınlanan etkinliklere göz atma; etkinliklere kayıolma; QR kodlu bilet görüntüleme; isteğe bağlı etkinlik bildirimleri (Android’de Firebase Cloud Messaging, iOS’ta Firebase üzerinden Apple Push); profilde görünen adınızı güncelleme; yetkili düzenleyici veya görevli hesapları için QR/manuel check-in ve duyuru gibi özellikler (ürünün sunduğu ölçüde).",
+          "Verileriniz GraphQL API arka ucumuz (hesap ve etkinlik verisi), Firebase (kimlik doğrulama ve anlık bildirim altyapısı) ve Uygulamayı çalıştıran Apple ile Google platformları tarafından işlenir. Uygulama içinden harici bağlantılar açarsanız o sitelerin politikaları geçerlidir."
+        ]
+      },
+      {
+        "id": "data-collected",
+        "title": "İşlenen kişisel veriler",
+        "paragraphs": [
+          "Hesap ve profil: E-posta adresi, Firebase kullanıcı tanımlayıcısı ve profil ekranında seçtiğiniz görünen ad.",
+          "Etkinlik ve katılım: Kayıtlar, check-in sırasında kullanılan dijital bilet veya QR içeriği, kayıt durumu ve katılımda işlenen zaman damgaları (QR tarama veya ürünün desteklediği manuel check-in dahil).",
+          "Anlık bildirimler: İzin verirseniz, ilgili etkinlik mesajlarını iletmek için cihaz push token’ı kaydedilir (üçüncü taraf reklamı için kullanılmaz).",
+          "Görevli / düzenleyici özellikleri: Hesabınıza atanmış roller ve Uygulama içinde yapılan işlemler (örneğin check-in veya duyuru gönderimi), bu özellikleri çalıştırmak için gerektiği ölçüde işlenir.",
+          "Teknik veriler: Oturuma bağlı API istekleri, uygulama sürümü ve platform (iOS/Android) gibi Hizmetleri çalıştırmak ve korumak için sınırlı sunucu ve güvenlik bilgisi. Uygulama ile kesin GPS konumunuzu veya rehberinizi toplamıyoruz."
+        ]
+      },
+      {
+        "id": "purposes",
+        "title": "Amaçlar",
+        "paragraphs": [
+          "Kişisel verileri Hizmetleri sunmak için işleriz: kimlik doğrulama, etkinlik keşfi ve kaydı, bilet ve check-in, açtığınız bildirimleri iletmek, düzenleyici araçları çalıştırmak, güvenliği sağlamak, sorun gidermek ve yasal yükümlülüklere uymak.",
+          "Kişisel verilerinizi satmayız."
+        ]
+      },
+      {
+        "id": "legal-bases",
+        "title": "Hukuki dayanaklar (AB, İsviçre, İngiltere)",
+        "paragraphs": [
+          "GDPR benzeri mevzuatın geçtiği yerlerde; sözleşmenin ifası (istediğiniz Uygulama özellikleri); gerektiğinde meşru menfaat (Hizmetleri güvenli tutmak, kötüye kullanımı önlemek), haklarınızla dengelenmiş; bildirimler için gerektiğinde rıza; ve yasal zorunluluk dayanaklarından bir veya daha fazlasına güvenebiliriz."
+        ]
+      },
+      {
+        "id": "sharing",
+        "title": "İşleyenler ve paylaşım",
+        "paragraphs": [
+          "Google Firebase hizmetlerini kullanıyoruz: Firebase Authentication ve Firebase Cloud Messaging (FCM). Apple cihazlarında bildirim teslimi Firebase ile entegre Apple altyapısı üzerinden yapılır. Bu sağlayıcılar talimatımızla işlemci veya servis sağlayıcı olarak çalışır.",
+          "GraphQL arka ucumuz hesap, etkinlik ve kayıt verilerini saklar ve işler. Barındırma ve altyapı dağıtımına bağlı olarak bulut bölgesi ve alt işleyenler değişebilir.",
+          "Kişisel verileri satmayız. Yasal bir zorunluluk veya kullanıcıların ve topluluğun güvenliği için gerekliyse bilgi ifşa edilebilir."
+        ]
+      },
+      {
+        "id": "transfers",
+        "title": "Yurt dışına aktarım",
+        "paragraphs": [
+          "Firebase ve diğer bulut servisleri veriyi ABD ve başka ülkelerde işleyebilir. Gerektiğinde Standart Sözleşme Maddeleri ve yürürlükteki hukuka uygun ek tedbirlere başvurulur."
+        ]
+      },
+      {
+        "id": "retention",
+        "title": "Saklama",
+        "paragraphs": [
+          "Veriyi yukarıdaki amaçlar için gerekli olduğu sürece saklarız; örneğin hesabınız ve ilişkili etkinlik kayıtları süresince, operasyonel ve yasal gerekliliklere tabi olarak. Hesabınızı sildiğinizde (aşağıya bakın), dar bir yasal saklama zorunluluğu olmadıkça uygulama tarafında tutulan kişisel veriler silinir veya anonimleştirilir."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Güvenlik",
+        "paragraphs": [
+          "Uygulama ile API arasında HTTPS/TLS, kimlik doğrulamalı arka uç erişimi ve makul örgütsel önlemler kullanıyoruz. Çevrimiçi hiçbir hizmet mutlak güvenlik vaat edemez."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "Haklarınız",
+        "paragraphs": [
+          "Yaşadığınız yere bağlı olarak erişim, düzeltme, silme, kısıtlama veya itiraz ve şikâyet haklarından yararlanabilirsiniz. Talepler için nnazlicansahin@gmail.com adresine yazın; kimliğinizi doğrulamamız gerekebilir."
+        ]
+      },
+      {
+        "id": "account-deletion",
+        "title": "Hesap silme",
+        "paragraphs": [
+          "Hesabınızı Uygulama içinden silebilirsiniz: Profil ekranında Hesabı sil seçeneğini kullanın, iletişim kutusunda onaylayın ve istendiğinde şifrenizi girin. Bu işlem, hesaba bağlı sunucu tarafı kişisel verilerinizi (kayıtlar ve cihaz bildirim token’ları dahil, geçerliyse) ve Firebase Authentication kullanıcı kaydınızı kaldırmayı tetikler.",
+          "Uygulama içi silmeyi tamamlayamıyorsanız (örneğin oturum açamıyorsanız), hesabınızla ilişkili e-postadan nnazlicansahin@gmail.com adresine yazın; makul sürede yardımcı oluruz. Bazı yedek veya yasal kayıtlar zorunlu olarak kısa süre saklanabilir."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "Çocuklar",
+        "paragraphs": [
+          "Hizmetler geliştirici topluluğu için tasarlanmıştır ve yerel hukuka göre rıza gerektiren yaşın altındaki çocuklara yönelik değildir. Yanlışlıkla çocuk verisi topladığımızı düşünüyorsanız bize yazın; uygun şekilde sileriz."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "Değişiklikler",
+        "paragraphs": [
+          "Bu Gizlilik Politikasını güncelleyebiliriz. Güncellediğimizde bu sayfadaki “Son güncelleme” tarihini değiştiririz. Yasal olarak izin verildiği ölçüde değişiklikten sonra Uygulamayı kullanmaya devam etmeniz güncellenmiş politikayı kabul sayılabilir."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "İletişim",
+        "paragraphs": [
+          "Gizlilik ve veri talepleri: nnazlicansahin@gmail.com",
+          "Posta adresi: Temel Hizmetler için zorunlu değildir; bu politika ile ilgili haklar ve destek için yukarıdaki elektronik iletişim yeterlidir."
+        ]
+      }
+    ]
+  },
+  "support": {
+    "title": "Destek",
+    "metaDescription": "GDG Eskişehir GDG Events uygulaması için yardım.",
+    "lastUpdatedLabel": "Son güncelleme: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "overview",
+        "title": "Uygulama desteği",
+        "paragraphs": [
+          "Bu sayfa GDG Eskişehir düzenleyicilerine GDG Events mobil uygulaması (Android ve iOS) için nasıl ulaşacağınızı anlatır. Gönüllü bir topluluğuz; yanıt süreleri makul çaba ile genelde birkaç iş günü içindedir."
+        ]
+      },
+      {
+        "id": "email",
+        "title": "E-posta",
+        "paragraphs": [
+          "Etkinlikler, erişim sorunları, gizlilik veya hesap problemleri için nnazlicansahin@gmail.com adresine yazın.",
+          "Teknik sorun bildirirken platformunuzu (iOS veya Android), mümkünse uygulama sürümünüzü ve kısa bir sorun tanımını ekleyin."
+        ]
+      },
+      {
+        "id": "account",
+        "title": "Hesap silme",
+        "paragraphs": [
+          "Hesabınızı ve ilişkili verileri silmek için Uygulamada Profil → Hesabı sil yolunu kullanın (onay ve şifre istenecektir). Oturum açamıyorsanız, hesabınıza bağlı e-postadan nnazlicansahin@gmail.com adresine yazarak sahipliği doğrulamamıza yardımcı olun."
+        ]
+      },
+      {
+        "id": "privacy",
+        "title": "Gizlilik politikası",
+        "paragraphs": [
+          "Firebase, anlık bildirimler ve arka uç verilerinin kullanımı bu sitedeki Gizlilik Politikasında açıklanır (üst menüdeki bağlantı)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Kullanım şartları",
+    "metaDescription": "GDG Eskişehir GDG Events mobil uygulaması için kullanım şartları.",
+    "lastUpdatedLabel": "Son güncelleme: {date}",
+    "lastUpdatedDate": "2026-04-20",
+    "sections": [
+      {
+        "id": "acceptance",
+        "title": "Kabul",
+        "paragraphs": [
+          "GDG Eskişehir GDG Events mobil uygulamasını (“Uygulama”) indirerek veya kullanarak bu Kullanım Şartlarını kabul edersiniz. Kabul etmiyorsanız Uygulamayı kullanmayın.",
+          "Uygulama, topluluk teknoloji etkinliklerini keşfetmek ve katılmak için GDG Eskişehir tarafından ticari olmayan bir topluluk hizmeti olarak sunulur. Mekânda geçerli etkinlik kuralları da uygulanabilir."
+        ]
+      },
+      {
+        "id": "service",
+        "title": "Hizmet",
+        "paragraphs": [
+          "Uygulama; e-posta ve şifre ile Firebase Authentication oturumu, yayınlanan etkinliklere göz atma, etkinlik kaydı, etkinleştirildiğinde bilet ve QR, Firebase Cloud Messaging / Apple push ile isteğe bağlı bildirimler, profil ayarları ve hesabınızda izin varsa düzenleyici araçları sunar.",
+          "Güvenlik veya kapasite için özellikleri değiştirebilir, askıya alabilir veya sonlandırabiliriz. Kesintisiz kullanılabilirlik garanti etmez."
+        ]
+      },
+      {
+        "id": "conduct",
+        "title": "Kabul edilebilir kullanım",
+        "paragraphs": [
+          "Uygulama veya arka ucu kötüye kullanmayacağınızı kabul edersiniz: yasadışı faaliyet, taciz, güvenlik veya kota sınırlarını aşma girişimi, hizmete zarar verecek şekilde veri çekme veya diğer kullanıcıların deneyimini bozma.",
+          "Düzenleyiciler, mekân veya topluluk kurallarına göre etkinliğe girişi veya katılımı reddedebilir."
+        ]
+      },
+      {
+        "id": "disclaimers",
+        "title": "Sorumluluk reddi",
+        "paragraphs": [
+          "Uygulama yasaların izdiği ölçüde olduğu gibi sunulur. GDG Eskişehir gönüllüleri, Uygulama kullanımından doğan dolaylı veya sonuç zararlardan, zorunlu tüketici hukuku saklı kalmak kaydıyla sorumlu tutulamaz.",
+          "Google Firebase, mağaza ve ağ sağlayıcıları gibi üçüncü taraf hizmetlerin kendi şartları geçerlidir."
+        ]
+      },
+      {
+        "id": "privacy",
+        "title": "Gizlilik",
+        "paragraphs": [
+          "Kişisel verilerin işlenmesi ve hesap silme bu web sitesindeki Gizlilik Politikasında açıklanır."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "Değişiklikler",
+        "paragraphs": [
+          "Bu Şartları güncelleyebiliriz. Güncellediğimizde sayfanın üstündeki “Son güncelleme” tarihi değişir. Yasal olarak izin verildiği ölçüde değişiklikten sonra kullanım devamı güncellenmiş Şartları kabul anlamına gelebilir."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "İletişim",
+        "paragraphs": [
+          "Bu Şartlarla ilgili sorular: nnazlicansahin@gmail.com"
+        ]
+      }
+    ]
+  }
+}

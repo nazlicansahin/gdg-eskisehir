@@ -134,6 +134,22 @@ func (r *UserRepository) UpdateDisplayName(ctx context.Context, userID, displayN
 	`, userID, displayName)
 }
 
+func (r *UserRepository) DeleteByID(ctx context.Context, userID string) error {
+	tx, err := r.db.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if _, err := tx.Exec(ctx, `DELETE FROM announcements WHERE created_by = $1::uuid`, userID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM users WHERE id = $1::uuid`, userID); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
 func (r *UserRepository) ListAll(ctx context.Context) ([]*domain.User, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT

@@ -8,4 +8,7 @@ abstract class ProfileRepository {
   Future<Either<Failure, ProfileUser>> updateMyProfile({
     required String displayName,
   });
+
+  /// Deletes application data via GraphQL; caller should also delete the Firebase Auth user.
+  Future<Either<Failure, Unit>> deleteMyAccount();
 }

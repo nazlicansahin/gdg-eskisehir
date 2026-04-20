@@ -51,6 +51,10 @@ func (f *fakeUsers) UpdateDisplayName(_ context.Context, _, _ string) error {
 	return nil
 }
 
+func (f *fakeUsers) DeleteByID(_ context.Context, _ string) error {
+	return nil
+}
+
 func (f *fakeUsers) ListAll(_ context.Context) ([]*domain.User, error) {
 	var out []*domain.User
 	for _, u := range f.uidToUser {

@@ -49,6 +49,7 @@ type Resolver struct {
 	UpdateSpeakerUC   *speaker.UpdateSpeakerUseCase
 	AttachSpeaker     *speaker.AttachSpeakerToSessionUseCase
 	UpdateProfile     *appuser.UpdateMyProfileUseCase
+	DeleteMyAccountUC *appuser.DeleteMyAccountUseCase
 	GrantRole         *appuser.GrantUserRoleUseCase
 	RevokeRole        *appuser.RevokeUserRoleUseCase
 	AdminUsersExec    *appuser.AdminListUsersUseCase
@@ -228,6 +229,19 @@ func (r *mutationResolver) UpdateMyProfile(ctx context.Context, input model.Upda
 		return nil, gqlAPIError(err)
 	}
 	return toModelUser(u), nil
+}
+
+func (r *mutationResolver) DeleteMyAccount(ctx context.Context) (bool, error) {
+	actor, err := graphqlctx.ActorFromContext(ctx)
+	if err != nil {
+		return false, gqlAPIError(err)
+	}
+	if err := r.DeleteMyAccountUC.Execute(ctx, appuser.DeleteMyAccountInput{
+		ActorUserID: actor.UserID,
+	}); err != nil {
+		return false, gqlAPIError(err)
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEventInput) (*model.Event, error) {

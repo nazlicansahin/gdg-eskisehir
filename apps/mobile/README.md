@@ -62,6 +62,17 @@ Notes:
 - Ensure backend is running and healthy at `http://localhost:8081/healthz`.
 - If wireless device debugging is unstable, test once with USB to rule out network noise.
 
+## Legal site (Profile links)
+
+The app can open your published `apps/web` legal pages (Privacy, Terms, Support) from **Profile** when you pass the public **HTTPS** site origin (no trailing slash):
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8081 \
+  --dart-define=LEGAL_SITE_BASE_URL=https://your-production-site.example
+```
+
+If `LEGAL_SITE_BASE_URL` is omitted, the Legal section is hidden (useful for local dev before the site is live).
+
 ## Navigation structure (target)
 
 - Bottom tabs: **Events**, **My Tickets**, **Profile** (implemented).

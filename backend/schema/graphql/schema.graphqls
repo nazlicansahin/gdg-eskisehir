@@ -178,6 +178,7 @@ type Query {
 type Mutation {
   registerForEvent(eventId: ID!): RegistrationTicket!
   updateMyProfile(input: UpdateMyProfileInput!): User!
+  deleteMyAccount: Boolean!
 
   createEvent(input: CreateEventInput!): Event!
   updateEvent(input: UpdateEventInput!): Event!
