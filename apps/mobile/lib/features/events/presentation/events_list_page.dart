@@ -2,20 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/theme.dart';
 import 'package:gdg_events/core/event/event_description.dart';
+import 'package:gdg_events/core/event/event_time_filter.dart';
 import 'package:gdg_events/core/errors/failure_exception.dart';
 import 'package:gdg_events/core/errors/failures.dart';
 import 'package:gdg_events/features/events/domain/entities/event.dart';
 import 'package:gdg_events/features/events/domain/event_status.dart';
 import 'package:gdg_events/features/events/presentation/events_providers.dart';
+import 'package:gdg_events/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-class EventsListPage extends ConsumerWidget {
+class EventsListPage extends ConsumerStatefulWidget {
   const EventsListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EventsListPage> createState() => _EventsListPageState();
+}
+
+class _EventsListPageState extends ConsumerState<EventsListPage> {
+  EventTimeFilter _filter = EventTimeFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(eventsListProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +56,7 @@ class EventsListPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Text('Events'),
+            Text(l10n.eventsScreenTitle),
           ],
         ),
       ),
@@ -79,12 +89,12 @@ class EventsListPage extends ConsumerWidget {
                       size: 64, color: GdgTheme.googleYellow),
                   const SizedBox(height: 16),
                   Text(
-                    'No events yet',
+                    l10n.eventsEmptyTitle,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Stay tuned for upcoming community meetups!',
+                    l10n.eventsEmptySubtitle,
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
@@ -94,19 +104,66 @@ class EventsListPage extends ConsumerWidget {
               ),
             );
           }
-          return RefreshIndicator(
-            color: GdgTheme.googleBlue,
-            onRefresh: () async {
-              ref.invalidate(eventsListProvider);
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-              itemCount: events.length,
-              itemBuilder: (context, i) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _EventCard(event: events[i]),
+          final filtered = filterAndSortEvents(events, _filter);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              EventTimeFilterBar(
+                selected: _filter,
+                onSelected: (f) => setState(() => _filter = f),
+                labelFor: (f) => switch (f) {
+                  EventTimeFilter.all => l10n.filterAll,
+                  EventTimeFilter.upcoming => l10n.filterUpcoming,
+                  EventTimeFilter.live => l10n.filterLive,
+                  EventTimeFilter.past => l10n.filterPast,
+                },
               ),
-            ),
+              Expanded(
+                child: filtered.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.filter_alt_off_outlined,
+                                  size: 56, color: Colors.grey[400]),
+                              const SizedBox(height: 12),
+                              Text(
+                                l10n.eventsFilteredEmptyTitle,
+                                style:
+                                    Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.eventsFilteredEmptySubtitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(color: Colors.grey[600]),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        color: GdgTheme.googleBlue,
+                        onRefresh: () async {
+                          ref.invalidate(eventsListProvider);
+                        },
+                        child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _EventCard(event: filtered[i]),
+                          ),
+                        ),
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -121,6 +178,7 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final df = DateFormat.yMMMd().add_Hm();
     final theme = Theme.of(context);
     final isUpcoming = event.startsAt.isAfter(DateTime.now());
@@ -204,7 +262,7 @@ class _EventCard extends StatelessWidget {
                           size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 6),
                       Text(
-                        'Capacity ${event.capacity}',
+                        l10n.capacityEvents(event.capacity),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.grey[700],
                           fontWeight: FontWeight.w500,
@@ -269,25 +327,26 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final (label, bg, fg) = switch (status) {
       EventStatus.published => isUpcoming
           ? (
-              'Upcoming',
+              l10n.eventCardUpcoming,
               GdgTheme.googleGreen.withValues(alpha: 0.12),
               GdgTheme.googleGreen,
             )
           : (
-              'Live',
+              l10n.eventCardLive,
               GdgTheme.googleBlue.withValues(alpha: 0.12),
               GdgTheme.googleBlue,
             ),
       EventStatus.cancelled => (
-          'Cancelled',
+          l10n.eventCardCancelled,
           GdgTheme.googleRed.withValues(alpha: 0.12),
           GdgTheme.googleRed,
         ),
       EventStatus.draft => (
-          'Draft',
+          l10n.eventCardDraft,
           GdgTheme.googleYellow.withValues(alpha: 0.12),
           const Color(0xFFE37400),
         ),

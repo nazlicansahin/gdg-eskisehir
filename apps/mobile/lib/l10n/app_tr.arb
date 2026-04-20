@@ -1,0 +1,126 @@
+{
+  "@@locale": "tr",
+
+  "navEvents": "Etkinlikler",
+  "navTickets": "Biletler",
+  "navProfile": "Profil",
+
+  "eventFallbackTitle": "Etkinlik",
+
+  "eventsScreenTitle": "Etkinlikler",
+  "eventsEmptyTitle": "Henüz etkinlik yok",
+  "eventsEmptySubtitle": "Yakında topluluk buluşmaları için takipte kalın!",
+  "eventsFilteredEmptyTitle": "Bu kategoride etkinlik yok",
+  "eventsFilteredEmptySubtitle": "Başka bir zaman filtresi deneyin.",
+
+  "filterAll": "Tümü",
+  "filterUpcoming": "Yaklaşan",
+  "filterLive": "Şimdi",
+  "filterPast": "Geçmiş",
+
+  "eventCardUpcoming": "Yaklaşan",
+  "eventCardLive": "Canlı",
+  "eventCardCancelled": "İptal",
+  "eventCardDraft": "Taslak",
+
+  "capacityEvents": "Kapasite {count}",
+  "@capacityEvents": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "myTicketsTitle": "Biletlerim",
+  "noTicketsYet": "Henüz biletiniz yok",
+  "noTicketsSubtitle": "Biletlerinizi görmek için etkinliklere kaydolun.",
+  "ticketsFilteredEmptyTitle": "Bu kategoride bilet yok",
+  "ticketsFilteredEmptySubtitle": "Başka bir zaman filtresi deneyin.",
+  "ticketsEventsLoadWarning": "Etkinlik tarihleri yüklenemedi; filtreler kısıtlı olabilir.",
+
+  "profileTitle": "Profil",
+
+  "languageSectionTitle": "Dil",
+  "languageEnglish": "İngilizce",
+  "languageTurkish": "Türkçe",
+
+  "scanTicketsTitle": "Bilet okut",
+  "scanTicketsSubtitle": "Katılımcıları QR ile check-in yap",
+
+  "sendAnnouncementTitle": "Duyuru gönder",
+  "sendAnnouncementSubtitle": "Katılımcılara güncelleme bildir",
+
+  "displayNameLabel": "Görünen ad",
+  "displayNameHint": "Görünen adınız",
+  "saveProfile": "Profili kaydet",
+
+  "reminderSectionTitle": "Etkinlik hatırlatıcıları",
+  "reminderSectionBody": "Bu cihazda etkinlik başlangıcından 7 gün ve 1 gün önce hatırlatıcılar. Organizatörün push duyurusunun kime gideceğini bu ayar değiştirmez.",
+
+  "reminderAllEventsTitle": "Tüm etkinlikler",
+  "reminderAllEventsSubtitle": "Yayınlanan her etkinlik için hatırlatıcı",
+
+  "reminderRegisteredOnlyTitle": "Kayıtlı olduklarım",
+  "reminderRegisteredOnlySubtitle": "Yalnızca kayıt olduğum etkinlikler için hatırlatıcı",
+
+  "legalSectionTitle": "Yasal",
+  "privacyPolicy": "Gizlilik politikası",
+  "termsOfUse": "Kullanım şartları",
+  "support": "Destek",
+
+  "signOut": "Çıkış yap",
+  "deleteAccount": "Hesabı sil",
+
+  "profileUpdated": "Profil güncellendi",
+  "couldNotOpenLink": "Bağlantı açılamadı",
+
+  "deleteAccountTitle": "Hesap silinsin mi?",
+  "deleteAccountBody": "Profiliniz, kayıtlarınız ve ilgili veriler kalıcı olarak silinir. Bu bilgileri geri getiremezsiniz.",
+  "passwordLabel": "Şifre",
+  "passwordConfirmHint": "Onaylamak için şifrenizi girin",
+  "cancel": "İptal",
+  "delete": "Sil",
+  "enterPasswordToConfirm": "Onaylamak için şifrenizi girin",
+
+  "communityEventsSubtitle": "Topluluk etkinlikleri",
+  "eskisehirBrand": "Eskişehir",
+
+  "signInSegment": "Giriş",
+  "createAccountSegment": "Hesap oluştur",
+  "emailLabel": "E-posta",
+  "requiredField": "Zorunlu",
+  "submitSignIn": "Giriş yap",
+  "submitCreateAccount": "Hesap oluştur",
+
+  "reminderNotificationWeekTitle": "Bir hafta sonra",
+  "reminderNotificationDayTitle": "Bir gün sonra",
+
+  "ticketStatusLabel": "Durum: {status}",
+  "@ticketStatusLabel": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+
+  "addToCalendarButton": "Takvime ekle",
+
+  "ticketScanHeading": "Girişte okutun",
+  "ticketCopyCode": "Kodu kopyala",
+  "ticketCodeCopied": "Bilet kodu kopyalandı",
+  "eventDetailsButton": "Etkinlik detayı",
+  "ticketPageTitleDefault": "Biletiniz",
+  "ticketNoTicketYet": "Bu etkinlik için henüz biletiniz yok.",
+  "ticketRegisterFirst": "Önce etkinlik sayfasından kayıt olun.",
+  "pillReadyToScan": "Okutmaya hazır",
+  "pillCheckedIn": "Giriş yapıldı",
+  "pillCancelled": "İptal",
+  "ticketRegistrationPrefix": "Kayıt",
+  "ticketCheckedInPrefix": "Giriş yapıldı",
+
+  "settingsSavedToCalendar": "Takvime kaydedildi",
+  "settingsCouldNotAddCalendar": "Takvime eklenemedi: {error}",
+  "@settingsCouldNotAddCalendar": {
+    "placeholders": {
+      "error": {}
+    }
+  }
+}

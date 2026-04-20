@@ -24,10 +24,19 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>tr</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is used to scan attendee QR codes for event check-in.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Calendar access lets you save event dates from the app.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Contacts access may be requested by the calendar app when saving an event.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,0 +1,126 @@
+{
+  "@@locale": "en",
+
+  "navEvents": "Events",
+  "navTickets": "Tickets",
+  "navProfile": "Profile",
+
+  "eventFallbackTitle": "Event",
+
+  "eventsScreenTitle": "Events",
+  "eventsEmptyTitle": "No events yet",
+  "eventsEmptySubtitle": "Stay tuned for upcoming community meetups!",
+  "eventsFilteredEmptyTitle": "No events in this category",
+  "eventsFilteredEmptySubtitle": "Try another time filter.",
+
+  "filterAll": "All",
+  "filterUpcoming": "Upcoming",
+  "filterLive": "Live",
+  "filterPast": "Past",
+
+  "eventCardUpcoming": "Upcoming",
+  "eventCardLive": "Live",
+  "eventCardCancelled": "Cancelled",
+  "eventCardDraft": "Draft",
+
+  "capacityEvents": "Capacity {count}",
+  "@capacityEvents": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "myTicketsTitle": "My Tickets",
+  "noTicketsYet": "No tickets yet",
+  "noTicketsSubtitle": "Register for events to get your tickets here.",
+  "ticketsFilteredEmptyTitle": "No tickets in this category",
+  "ticketsFilteredEmptySubtitle": "Try another time filter.",
+  "ticketsEventsLoadWarning": "Could not load event dates; filters may be unavailable.",
+
+  "profileTitle": "Profile",
+
+  "languageSectionTitle": "Language",
+  "languageEnglish": "English",
+  "languageTurkish": "Turkish",
+
+  "scanTicketsTitle": "Scan tickets",
+  "scanTicketsSubtitle": "Check in attendees by QR",
+
+  "sendAnnouncementTitle": "Send announcement",
+  "sendAnnouncementSubtitle": "Notify attendees about updates",
+
+  "displayNameLabel": "Display name",
+  "displayNameHint": "Your display name",
+  "saveProfile": "Save profile",
+
+  "reminderSectionTitle": "Event reminders",
+  "reminderSectionBody": "Reminders on this device 7 days and 1 day before event start. This does not change who receives organizer push announcements.",
+
+  "reminderAllEventsTitle": "All events",
+  "reminderAllEventsSubtitle": "Reminders for every published event",
+
+  "reminderRegisteredOnlyTitle": "Registered only",
+  "reminderRegisteredOnlySubtitle": "Reminders only for events I registered for",
+
+  "legalSectionTitle": "Legal",
+  "privacyPolicy": "Privacy policy",
+  "termsOfUse": "Terms of use",
+  "support": "Support",
+
+  "signOut": "Sign out",
+  "deleteAccount": "Delete account",
+
+  "profileUpdated": "Profile updated",
+  "couldNotOpenLink": "Could not open link",
+
+  "deleteAccountTitle": "Delete account?",
+  "deleteAccountBody": "This permanently deletes your profile, registrations, and related data. You will not be able to recover this information.",
+  "passwordLabel": "Password",
+  "passwordConfirmHint": "Enter your password to confirm",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "enterPasswordToConfirm": "Enter your password to confirm",
+
+  "communityEventsSubtitle": "Community Events",
+  "eskisehirBrand": "Eskisehir",
+
+  "signInSegment": "Sign in",
+  "createAccountSegment": "Create account",
+  "emailLabel": "Email",
+  "requiredField": "Required",
+  "submitSignIn": "Sign in",
+  "submitCreateAccount": "Create account",
+
+  "reminderNotificationWeekTitle": "In one week",
+  "reminderNotificationDayTitle": "In one day",
+
+  "ticketStatusLabel": "Status: {status}",
+  "@ticketStatusLabel": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+
+  "addToCalendarButton": "Add to calendar",
+
+  "ticketScanHeading": "Scan at check-in",
+  "ticketCopyCode": "Copy code",
+  "ticketCodeCopied": "Ticket code copied",
+  "eventDetailsButton": "Event details",
+  "ticketPageTitleDefault": "Your ticket",
+  "ticketNoTicketYet": "No ticket for this event yet.",
+  "ticketRegisterFirst": "Register from the event page first.",
+  "pillReadyToScan": "Ready to scan",
+  "pillCheckedIn": "Checked in",
+  "pillCancelled": "Cancelled",
+  "ticketRegistrationPrefix": "Registration",
+  "ticketCheckedInPrefix": "Checked in",
+
+  "settingsSavedToCalendar": "Saved to calendar",
+  "settingsCouldNotAddCalendar": "Could not add to calendar: {error}",
+  "@settingsCouldNotAddCalendar": {
+    "placeholders": {
+      "error": {}
+    }
+  }
+}

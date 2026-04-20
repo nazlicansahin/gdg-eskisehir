@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/providers.dart';
 import 'package:gdg_events/app/theme.dart';
+import 'package:gdg_events/core/event/add_to_calendar.dart';
 import 'package:gdg_events/core/event/event_description.dart';
 import 'package:gdg_events/core/errors/failure_exception.dart';
 import 'package:gdg_events/core/errors/failures.dart';
@@ -13,6 +14,7 @@ import 'package:gdg_events/features/events/presentation/events_providers.dart';
 import 'package:gdg_events/features/profile/presentation/profile_providers.dart';
 import 'package:gdg_events/features/registration/presentation/registration_providers.dart';
 import 'package:gdg_events/features/schedule/presentation/schedule_providers.dart';
+import 'package:gdg_events/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -201,6 +203,7 @@ class _EventInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -233,7 +236,7 @@ class _EventInfoCard extends StatelessWidget {
               _InfoRow(
                 icon: Icons.people_outline_rounded,
                 iconColor: GdgTheme.googleGreen,
-                text: 'Capacity ${event.capacity}',
+                text: l10n.capacityEvents(event.capacity),
               ),
               if (parsed.location.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -248,6 +251,38 @@ class _EventInfoCard extends StatelessWidget {
                 icon: parsed.isFree ? Icons.volunteer_activism_rounded : Icons.payments_outlined,
                 iconColor: parsed.isFree ? GdgTheme.googleGreen : GdgTheme.googleYellow,
                 text: parsed.isFree ? 'Free' : 'Paid (${parsed.price.isEmpty ? 'n/a' : parsed.price})',
+              ),
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final ok = await addEventToDeviceCalendar(event);
+                      if (!context.mounted) return;
+                      if (ok) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.settingsSavedToCalendar),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l10n.settingsCouldNotAddCalendar(e.toString()),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_month_outlined, size: 20),
+                  label: Text(l10n.addToCalendarButton),
+                ),
               ),
             ],
           ),

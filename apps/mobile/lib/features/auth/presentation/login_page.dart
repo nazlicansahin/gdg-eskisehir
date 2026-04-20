@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gdg_events/app/providers.dart';
 import 'package:gdg_events/app/theme.dart';
+import 'package:gdg_events/l10n/app_localizations.dart';
 import 'package:gdg_events/core/errors/failures.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,6 +30,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -62,7 +64,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Eskisehir',
+                    l10n.eskisehirBrand,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -71,7 +73,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Community Events',
+                    l10n.communityEventsSubtitle,
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[500],
@@ -80,14 +82,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 36),
 
                   SegmentedButton<bool>(
-                    segments: const [
+                    segments: [
                       ButtonSegment<bool>(
                         value: false,
-                        label: Text('Sign in'),
+                        label: Text(l10n.signInSegment),
                       ),
                       ButtonSegment<bool>(
                         value: true,
-                        label: Text('Create account'),
+                        label: Text(l10n.createAccountSegment),
                       ),
                     ],
                     selected: {_registerMode},
@@ -97,26 +99,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _email,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
+                    decoration: InputDecoration(
+                      labelText: l10n.emailLabel,
+                      prefixIcon: const Icon(Icons.email_outlined),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                        (v == null || v.trim().isEmpty)
+                            ? l10n.requiredField
+                            : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _password,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_outline),
+                    decoration: InputDecoration(
+                      labelText: l10n.passwordLabel,
+                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
                     obscureText: true,
                     autofillHints: const [AutofillHints.password],
                     validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
+                        (v == null || v.isEmpty) ? l10n.requiredField : null,
                   ),
                   const SizedBox(height: 28),
                   SizedBox(
@@ -131,7 +135,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(
-                              _registerMode ? 'Create account' : 'Sign in'),
+                              _registerMode
+                                  ? l10n.submitCreateAccount
+                                  : l10n.submitSignIn),
                     ),
                   ),
                 ],

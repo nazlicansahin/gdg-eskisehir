@@ -81,3 +81,20 @@ If `LEGAL_SITE_BASE_URL` is omitted, the Legal section is hidden (useful for loc
 ## Feature parity contract
 
 Same invariants as the website: published-only discovery for members, one registration per event, capacity and QR semantics enforced by the backend (`docs/phase1/01-assumptions-and-guardrails.md`).
+
+## Calendar
+
+**Add to calendar** uses [`add_2_calendar`](https://pub.dev/packages/add_2_calendar): it opens the system calendar editor with title, start/end (local time), optional description body and **Location:** line from the parsed event description, and on iOS a one-hour reminder before start. Entry points: **Event detail** (info card) and **Ticket** (when the event payload is loaded).
+
+iOS requires `NSCalendarsUsageDescription` (and `NSContactsUsageDescription` is recommended by the plugin). Android may need the `INSERT` calendar intent in `<queries>` (see plugin README) so the calendar app can be resolved on API 30+.
+
+## Future (mobile backlog)
+
+Ideas not implemented yet; track and prioritise as needed.
+
+- **Venue / map** — surface a structured venue or coordinates from the backend when the API exposes them; open in Maps using `url_launcher` or an embedded map.
+- **Share sheet** — share human-readable text plus a deep link (`go_router` / universal links or a custom scheme) so recipients can open the event in the app or on the web.
+- **Local reminder for upcoming events** — schedule a `flutter_local_notifications` reminder from the device (distinct from push), with user consent and clear cancellation when the event is past or registration is cancelled.
+- **Apple Wallet / Google Wallet** — add tickets as passes; typically requires server-generated **`.pkpass`** (Apple) and the Android Wallet APIs / pass format, plus signing certificates.
+- **i18n polish** — e.g. Turkish labels for event time filter chips, aligned with app locale once end-to-end l10n is chosen.
+- **Data model follow-ups** — extend the GraphQL/event entity when backend adds venue fields or public event URLs so calendar, map, and share flows stay consistent.

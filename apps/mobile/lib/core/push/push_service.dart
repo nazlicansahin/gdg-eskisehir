@@ -18,6 +18,10 @@ class PushService {
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
 
+  /// Used to show FCM in foreground and for on-device event reminder schedules.
+  FlutterLocalNotificationsPlugin get localNotificationsPlugin =>
+      _localNotifications;
+
   Future<void>? _initFuture;
 
   Future<void> init() {
@@ -46,6 +50,14 @@ class PushService {
       importance: Importance.high,
     );
 
+    const remindersChannel = AndroidNotificationChannel(
+      'event_reminders',
+      'Event reminders',
+      description:
+          'On-device reminders before events you follow (7 days and 1 day).',
+      importance: Importance.defaultImportance,
+    );
+
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -64,6 +76,7 @@ class PushService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.createNotificationChannel(androidChannel);
+    await androidImpl?.createNotificationChannel(remindersChannel);
     if (Platform.isAndroid) {
       await androidImpl?.requestNotificationsPermission();
     }
