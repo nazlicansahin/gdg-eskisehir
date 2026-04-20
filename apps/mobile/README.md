@@ -93,6 +93,7 @@ iOS requires `NSCalendarsUsageDescription` (and `NSContactsUsageDescription` is 
 Ideas not implemented yet; track and prioritise as needed.
 
 - **Venue / map** — surface a structured venue or coordinates from the backend when the API exposes them; open in Maps using `url_launcher` or an embedded map.
+- **Participation badges** — badge or achievement-style rewards for events the user joined or attended (depends on clear attendance signals from the backend, e.g. check-in or completed registration); surface on profile, ticket history, or a dedicated collection screen.
 - **Share sheet** — share human-readable text plus a deep link (`go_router` / universal links or a custom scheme) so recipients can open the event in the app or on the web.
 - **Local reminder for upcoming events** — schedule a `flutter_local_notifications` reminder from the device (distinct from push), with user consent and clear cancellation when the event is past or registration is cancelled.
 - **Apple Wallet / Google Wallet** — add tickets as passes; typically requires server-generated **`.pkpass`** (Apple) and the Android Wallet APIs / pass format, plus signing certificates.

@@ -1245,7 +1245,7 @@ class _AnnouncementsSection extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    SelectableText(
                       a.body as String,
                       style: TextStyle(
                         fontSize: 13,
