@@ -1,5 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gdg_events/core/config/app_config.dart';
+import 'package:gdg_events/core/security/runtime_integrity.dart';
 import 'package:gdg_events/core/network/graph_ql_client_provider.dart';
 import 'package:gdg_events/features/auth/data/auth_repository_impl.dart';
 import 'package:gdg_events/features/auth/domain/repositories/auth_repository.dart';
@@ -50,4 +53,14 @@ final announcementsRepositoryProvider = Provider<AnnouncementsRepository>(
 
 final pushServiceProvider = Provider<PushService>(
   (ref) => PushService(ref.watch(graphQLClientProvider)),
+);
+
+final runtimeIntegrityServiceProvider = Provider<RuntimeIntegrityService>(
+  (ref) => RuntimeIntegrityService(DeviceInfoPlugin()),
+);
+
+final runtimeIntegrityProvider = FutureProvider<RuntimeIntegrityResult>(
+  (ref) => ref
+      .watch(runtimeIntegrityServiceProvider)
+      .evaluate(enforce: AppConfig.shouldEnforceAntiTamper),
 );

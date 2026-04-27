@@ -99,3 +99,39 @@ Ideas not implemented yet; track and prioritise as needed.
 - **Apple Wallet / Google Wallet** — add tickets as passes; typically requires server-generated **`.pkpass`** (Apple) and the Android Wallet APIs / pass format, plus signing certificates.
 - **i18n polish** — e.g. Turkish labels for event time filter chips, aligned with app locale once end-to-end l10n is chosen.
 - **Data model follow-ups** — extend the GraphQL/event entity when backend adds venue fields or public event URLs so calendar, map, and share flows stay consistent.
+
+## Reverse-engineering hardening
+
+This app now includes baseline static hardening:
+
+- Android release enables R8 (`isMinifyEnabled=true`, `isShrinkResources=true`).
+- Android cleartext traffic is disabled (`usesCleartextTraffic=false` + network security config).
+- Android backups are disabled (`allowBackup=false`, `fullBackupContent=false`).
+- iOS App Transport Security disallows arbitrary HTTP loads.
+
+For production releases, build with Dart obfuscation and keep debug symbols outside the APK/IPA:
+
+```bash
+# Android (preferred release artifact)
+flutter build appbundle --release \
+  --obfuscate \
+  --split-debug-info=build/symbols/android
+
+# iOS
+flutter build ipa --release \
+  --obfuscate \
+  --split-debug-info=build/symbols/ios
+```
+
+Important operational guidance:
+
+- Never ship with debug signing keys; configure release signing in CI/CD.
+- Keep symbol files in secure artifact storage for crash deobfuscation.
+- Keep business-critical authorization in backend policy/use cases (do not trust client-side gates).
+- Treat Firebase config as public metadata, and protect secrets/tokens only on server side.
+
+Runtime checks currently include root/jailbreak, Android developer mode, and emulator/virtual-device signals. By default they are enforced in release builds. You can force enforcement in debug/profile for verification:
+
+```bash
+flutter run --dart-define=ENFORCE_ANTI_TAMPER=true
+```

@@ -9,6 +9,7 @@ import 'package:gdg_events/app/app_router.dart';
 import 'package:gdg_events/app/event_reminders_coordinator.dart';
 import 'package:gdg_events/app/providers.dart';
 import 'package:gdg_events/app/theme.dart';
+import 'package:gdg_events/core/security/runtime_integrity_gate.dart';
 import 'package:gdg_events/l10n/app_localizations.dart';
 
 class GdgEventsApp extends ConsumerStatefulWidget {
@@ -48,12 +49,30 @@ class _GdgEventsAppState extends ConsumerState<GdgEventsApp> {
 
   @override
   Widget build(BuildContext context) {
+    final integrity = ref.watch(runtimeIntegrityProvider);
+    if (integrity.isLoading) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+    final integrityResult = integrity.valueOrNull;
+    if (integrityResult != null && integrityResult.blocked) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: GdgTheme.light(),
+        home: RuntimeIntegrityGate(reasons: integrityResult.reasons),
+      );
+    }
+
     final router = ref.watch(goRouterProvider);
     final localeAsync = ref.watch(appLocaleProvider);
     final locale = localeAsync.valueOrNull ?? const Locale('en');
 
     return MaterialApp.router(
-      title: 'GDG Eskisehir',
+      title: 'EsDev: Eskişehir Yazılım Etkinlikleri',
       debugShowCheckedModeBanner: false,
       theme: GdgTheme.light(),
       routerConfig: router,

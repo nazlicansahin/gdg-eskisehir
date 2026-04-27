@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Runtime configuration. Pass via `--dart-define=API_BASE_URL=https://...`.
 class AppConfig {
   AppConfig._();
@@ -14,6 +16,14 @@ class AppConfig {
     'LEGAL_SITE_BASE_URL',
     defaultValue: '',
   );
+
+  /// Optional override to enforce anti-tamper checks in non-release builds.
+  static const bool enforceAntiTamper = bool.fromEnvironment(
+    'ENFORCE_ANTI_TAMPER',
+    defaultValue: false,
+  );
+
+  static bool get shouldEnforceAntiTamper => kReleaseMode || enforceAntiTamper;
 
   static Uri get graphqlUri => Uri.parse('$apiBaseUrl/graphql');
 
