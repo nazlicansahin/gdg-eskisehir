@@ -1,0 +1,9 @@
+.git
+.gitignore
+.idea
+.vscode
+.cursor
+bin
+dist
+coverage.out
+**/.DS_Store
